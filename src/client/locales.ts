@@ -30,12 +30,8 @@ export type TokenKey =
   | 'hoverRequests'
   | 'hoverCache'
   | 'cacheExcluded'
-  | 'dayListTitle'
   | 'loading'
   | 'error'
-  | 'tzLabel'
-  | 'tzLocal'
-  | 'tzUtc'
   | 'entryLabel'
   | 'sessions'
   | 'empty'
@@ -62,12 +58,8 @@ export const zh: Record<TokenKey, string> = {
   hoverRequests: '{n} 次请求',
   hoverCache: '缓存读 {n}（不计入总量）',
   cacheExcluded: '缓存读仅作附注，不计入总量',
-  dayListTitle: '近 30 天明细',
   loading: '加载中…',
   error: '加载失败：{message}',
-  tzLabel: '日界',
-  tzLocal: '本地',
-  tzUtc: 'UTC',
   entryLabel: 'Token',
   sessions: '{n} 个会话',
   empty: '暂无数据',
@@ -95,12 +87,8 @@ export const en: Record<TokenKey, string> = {
   hoverRequests: '{n} requests',
   hoverCache: 'Cache read {n} (excluded)',
   cacheExcluded: 'Cache reads are noted but never counted into totals',
-  dayListTitle: 'Last 30 days',
   loading: 'Loading…',
   error: 'Failed to load: {message}',
-  tzLabel: 'Day boundary',
-  tzLocal: 'Local',
-  tzUtc: 'UTC',
   entryLabel: 'Token',
   sessions: '{n} sessions',
   empty: 'No data yet',
