@@ -23,6 +23,7 @@
 <!-- 每行一个已关闭 ticket：gist + 链接；细节在 ticket 的 Answer 里 -->
 
 - [01 · DSH client-ui 插件注册机制](issues/01-dsh-client-ui-plugin-api.md) — 单包双面 Cordis 插件（host 主导出 + ./client browser 半区）；侧边栏入口用 `sidebar.footer.action` slot（顶部条目需 DOM 注入）；面板走 `shell.overlay`；host 数据 API 用 `ctx.webServer.register`（`/api/token-dashboard/*`），client 同源 fetch/EventSource。
+- [08 · 本地安装与自用验证](issues/08-local-install-verify.md) — 用户验收通过（「很满意」）：真实数据跑通；验收期修复 7 类问题（滚动条×2、tooltip 截断、月份对齐、零数据柱、重设计 round 2）；发布就绪。
 - [07 · UI 实现](issues/07-ui-implementation.md) — 官方 slot 双条目（sidebar.footer.action 入口 + shell.overlay 面板）；Variant A 生产重写（26 周热力图+翻页、日视图、tooltip、tz 偏好、刷新）；中英双语随 shell 语言；用户实测验收通过。
 - [10 · 开发联调环境](issues/10-dev-loop.md) — 本地包 link 挂载进 web profile（bundle 自动 reconcile）；重启后插件加载、/api/token-dashboard/* 实测存活返回真实数据；docs/dev-loop.md 联调手册；client-bundle HMR 验证并入 07。
 - [06 · 数据聚合服务实现](issues/06-aggregation-service.md) — sessionPersistence seam + revision/lastSeq 增量缓存；(turn,step) 后写覆盖 fold；DST 安全 local/utc 切日；total=input+output、cacheRead 独立桶；/api/token-dashboard/{summary,days}（26 周默认+offset 翻页）；20 测试全绿含本机全量会话日志交叉核对。

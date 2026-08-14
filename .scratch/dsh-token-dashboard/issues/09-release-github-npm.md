@@ -1,7 +1,7 @@
 # 09 · 发布：公开 GitHub 仓库 + npm 首版 0.1.0（HITL）
 
 Type: task
-Status: open
+Status: claimed
 Blocked by: 08
 
 ## Question
