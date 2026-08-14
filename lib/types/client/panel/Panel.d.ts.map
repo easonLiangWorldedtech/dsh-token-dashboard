@@ -1,1 +1,1 @@
-{"version":3,"file":"Panel.d.ts","sourceRoot":"","sources":["../../../../src/client/panel/Panel.tsx"],"names":[],"mappings":"AAOA,OAAO,KAAK,EAAE,WAAW,EAAE,MAAM,kCAAkC,CAAA;AAanE,MAAM,WAAW,UAAW,SAAQ,WAAW,CAAC,iBAAiB,CAAC;CAAG;AASrE,wBAAgB,UAAU,CAAC,EAAE,CAAC,EAAE,EAAE,UAAU,sCA0G3C"}
+{"version":3,"file":"Panel.d.ts","sourceRoot":"","sources":["../../../../src/client/panel/Panel.tsx"],"names":[],"mappings":"AAOA,OAAO,KAAK,EAAE,WAAW,EAAE,MAAM,kCAAkC,CAAA;AAanE,MAAM,WAAW,UAAW,SAAQ,WAAW,CAAC,iBAAiB,CAAC;CAAG;AASrE,wBAAgB,UAAU,CAAC,EAAE,CAAC,EAAE,EAAE,UAAU,sCAwG3C"}

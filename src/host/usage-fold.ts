@@ -20,12 +20,27 @@ import type { TokenUsageLike, UsageSample } from '../core/types'
  */
 export function foldUsage(events: readonly SessionEvent[]): UsageSample[] {
   const byStep = new Map<string, UsageSample>()
+  let provider: string | undefined
+  let model: string | undefined
   for (const event of events) {
+    // Route identity comes from the request events preceding the step in seq
+    // order (request/header.config or request/context carry provider/model).
+    if (event.type === 'request/header') {
+      const config = event.data.header.config
+      if (typeof config.provider === 'string') provider = config.provider
+      if (typeof config.model === 'string') model = config.model
+      continue
+    }
+    if (event.type === 'request/context') {
+      if (typeof event.data.provider === 'string') provider = event.data.provider
+      if (typeof event.data.model === 'string') model = event.data.model
+      continue
+    }
     if (event.type === 'assistant/message') {
       const usage = event.data.usage
       if (usage !== undefined) {
         const { turn, step } = event.data
-        byStep.set(turn + ':' + step, { turn, step, time: event.time, usage: usage as TokenUsageLike })
+        byStep.set(turn + ':' + step, { turn, step, time: event.time, usage: usage as TokenUsageLike, provider, model })
       }
       continue
     }
@@ -37,7 +52,7 @@ export function foldUsage(events: readonly SessionEvent[]): UsageSample[] {
         // A message sample that already replaced this chunk wins; the chunk
         // only counts when no final sample exists yet for the same (turn, step).
         if (!byStep.has(key)) {
-          byStep.set(key, { turn, step, time: event.time, usage: chunk.usage as TokenUsageLike })
+          byStep.set(key, { turn, step, time: event.time, usage: chunk.usage as TokenUsageLike, provider, model })
         }
       }
     }

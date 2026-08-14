@@ -60,3 +60,23 @@ describe('mergeUsage', () => {
     expect(existing.get('1:2')?.usage.inputTokens).toBe(7)
   })
 })
+describe('provider/model tracking', () => {
+  it('attaches the provider/model from the preceding request events', () => {
+    const header = { type: 'request/header', seq: 0, time: 0, data: { header: { config: { provider: 'opencode', model: 'deepseek-v4-pro' } }, reason: 'initial' } } as SessionEvent
+    const context = { type: 'request/context', seq: 1, time: 1, data: { provider: 'opencode', model: 'deepseek-v4-flash', contextWindow: 1000000 } } as SessionEvent
+    const events = [header, context, chunk(1, 1, 2, 10, 10, 5)]
+    const samples = foldUsage(events)
+    expect(samples[0].provider).toBe('opencode')
+    expect(samples[0].model).toBe('deepseek-v4-flash') // context wins (later in seq)
+  })
+
+  it('follows a later request/header change and leaves pre-request samples untyped', () => {
+    const headerA = { type: 'request/header', seq: 0, time: 0, data: { header: { config: { provider: 'opencode', model: 'deepseek-v4-pro' } }, reason: 'initial' } } as SessionEvent
+    const headerB = { type: 'request/header', seq: 3, time: 3, data: { header: { config: { provider: 'opencode', model: 'deepseek-v4-flash' } }, reason: 'retry' } } as SessionEvent
+    const events = [chunk(1, 1, 1, 1, 5, 5), headerA, message(1, 1, 2, 2, 5, 5), headerB, chunk(2, 1, 4, 4, 7, 7)]
+    const samples = foldUsage(events)
+    expect(samples.find((s) => s.turn === 1)?.provider).toBe('opencode')
+    expect(samples.find((s) => s.turn === 1)?.model).toBe('deepseek-v4-pro')
+    expect(samples.find((s) => s.turn === 2)?.model).toBe('deepseek-v4-flash')
+  })
+})

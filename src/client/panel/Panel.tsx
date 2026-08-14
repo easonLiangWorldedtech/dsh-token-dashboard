@@ -121,7 +121,6 @@ export function TokenPanel({ t }: PanelProps) {
               <span key={color} className="td-cell" style={{ background: color }} />
             ))}
             <span>{t('legendMore')}</span>
-            <span style={{ marginLeft: 12 }}>{t('cacheExcluded')}</span>
           </div>
         )}
       </div>
@@ -129,7 +128,6 @@ export function TokenPanel({ t }: PanelProps) {
       <div className="td-foot">
         {summary !== null && <span>{t('sessions', { n: summary.sessionCount })}</span>}
         {timeLabel !== '' && <span>{timeLabel}</span>}
-        <span>{t('cacheExcluded')}</span>
       </div>
     </div>
   )

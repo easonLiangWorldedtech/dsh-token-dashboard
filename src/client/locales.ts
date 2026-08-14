@@ -26,13 +26,11 @@ export type TokenKey =
   | 'legendLess'
   | 'legendMore'
   | 'hoverTotal'
-  | 'hoverSplit'
   | 'hoverRequests'
-  | 'hoverCache'
-  | 'cacheExcluded'
   | 'loading'
   | 'error'
   | 'entryLabel'
+  | 'others'
   | 'sessions'
   | 'empty'
 
@@ -54,13 +52,11 @@ export const zh: Record<TokenKey, string> = {
   legendLess: '少',
   legendMore: '多',
   hoverTotal: '{date} · {total} tokens',
-  hoverSplit: '输入 {input} + 输出 {output}',
   hoverRequests: '{n} 次请求',
-  hoverCache: '缓存读 {n}（不计入总量）',
-  cacheExcluded: '缓存读仅作附注，不计入总量',
   loading: '加载中…',
   error: '加载失败：{message}',
-  entryLabel: 'Token',
+  entryLabel: 'usage',
+  others: 'others',
   sessions: '{n} 个会话',
   empty: '暂无数据',
 }
@@ -83,13 +79,11 @@ export const en: Record<TokenKey, string> = {
   legendLess: 'Less',
   legendMore: 'More',
   hoverTotal: '{date} · {total} tokens',
-  hoverSplit: 'Input {input} + output {output}',
   hoverRequests: '{n} requests',
-  hoverCache: 'Cache read {n} (excluded)',
-  cacheExcluded: 'Cache reads are noted but never counted into totals',
   loading: 'Loading…',
   error: 'Failed to load: {message}',
-  entryLabel: 'Token',
+  entryLabel: 'usage',
+  others: 'others',
   sessions: '{n} sessions',
   empty: 'No data yet',
 }

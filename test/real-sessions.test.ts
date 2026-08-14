@@ -94,7 +94,7 @@ describe.skipIf(!runnable)('real session logs', () => {
     expect(checkedTotal).toBeGreaterThan(0)
   })
 
-  it('never lets cacheReadTokens leak into the headline total', () => {
+  it('fold samples carry non-negative token buckets (cache included by design)', () => {
     for (const file of FILES.slice(0, 5)) {
       const text = execFileSync(ZSTD, ['-dc', file], { maxBuffer: 512 << 20 }).toString('utf8')
       const samples = foldUsage(parseEvents(text) as unknown as SessionEvent[])

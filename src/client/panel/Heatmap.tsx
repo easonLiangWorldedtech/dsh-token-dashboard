@@ -7,7 +7,7 @@ import type { MouseEvent } from 'react'
 import type { PropsLocale } from '@deepseek-ai/dsh-client-ui-slots'
 import type { TokenDayBucket } from '../../core/types'
 import { fmt } from '../fmt'
-import { Tip } from './Tip'
+import { DayTipContent, Tip } from './Tip'
 
 interface TooltipState {
   day: TokenDayBucket
@@ -113,12 +113,7 @@ export function Heatmap({ days, t }: HeatmapProps) {
       </div>
       {tip !== null && (
         <Tip x={tip.x} y={tip.y}>
-          <div className="big">{t('hoverTotal', { date: tip.day.date, total: fmt(tip.day.totalTokens) })}</div>
-          <div className="sub">{t('hoverSplit', { input: fmt(tip.day.inputTokens), output: fmt(tip.day.outputTokens) })}</div>
-          <div className="sub">{t('hoverRequests', { n: tip.day.requests })}</div>
-          {tip.day.cacheReadTokens > 0 && (
-            <div className="sub">{t('hoverCache', { n: fmt(tip.day.cacheReadTokens) })}</div>
-          )}
+          <DayTipContent day={tip.day} t={t} />
         </Tip>
       )}
     </div>

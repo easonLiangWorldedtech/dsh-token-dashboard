@@ -2,7 +2,7 @@
 // timezone policy (05 decision: local machine timezone by default, UTC as an
 // overridable option; DST-safe per-sample offsets).
 
-import type { TokenDayBucket, TokenUsageLike, UsageSample } from '../core/types.ts'
+import type { ModelBucket, TokenDayBucket, TokenUsageLike, UsageSample } from '../core/types'
 
 export type TimezonePolicy = 'local' | 'utc'
 
@@ -30,18 +30,31 @@ export function shiftDateKey(key: string, days: number): string {
 }
 
 function emptyBucket(date: string): TokenDayBucket {
-  return { date, totalTokens: 0, inputTokens: 0, outputTokens: 0, cacheReadTokens: 0, requests: 0 }
+  return { date, totalTokens: 0, inputTokens: 0, outputTokens: 0, cacheReadTokens: 0, requests: 0, byModel: [] }
 }
 
-function addUsage(bucket: TokenDayBucket, usage: TokenUsageLike): void {
+function addUsage(bucket: TokenDayBucket, sample: UsageSample): void {
+  const usage = sample.usage
   const input = usage.inputTokens ?? 0
   const output = usage.outputTokens ?? 0
   const cacheRead = usage.cacheReadTokens ?? 0
   bucket.inputTokens += input
   bucket.outputTokens += output
-  bucket.totalTokens += input + output
+  // User decision (05 Revision): cache reads count into the headline total.
+  bucket.totalTokens += input + output + cacheRead
   bucket.cacheReadTokens += cacheRead
   bucket.requests += 1
+  const provider = sample.provider ?? 'unknown'
+  const model = sample.model ?? 'unknown'
+  const key = provider + '\u0000' + model
+  const byModel = (bucket as TokenDayBucket & { byModelMap?: Map<string, ModelBucket> }).byModelMap
+    ?? ((bucket as TokenDayBucket & { byModelMap?: Map<string, ModelBucket> }).byModelMap = new Map())
+  let entry = byModel.get(key)
+  if (entry === undefined) {
+    entry = { provider, model, tokens: 0 }
+    byModel.set(key, entry)
+  }
+  entry.tokens += input + output + cacheRead
 }
 
 /** Aggregate every sample into the full day-bucket map (no window truncation). */
@@ -58,7 +71,14 @@ export function buildBucketMap(
       bucket = emptyBucket(key)
       buckets.set(key, bucket)
     }
-    addUsage(bucket, sample.usage)
+    addUsage(bucket, sample)
+  }
+  for (const bucket of buckets.values()) {
+    const map = (bucket as TokenDayBucket & { byModelMap?: Map<string, ModelBucket> }).byModelMap
+    if (map !== undefined) {
+      bucket.byModel = [...map.values()].sort((a, b) => b.tokens - a.tokens)
+      delete (bucket as TokenDayBucket & { byModelMap?: Map<string, ModelBucket> }).byModelMap
+    }
   }
   return buckets
 }

@@ -31,7 +31,7 @@ describe('shiftDateKey', () => {
 })
 
 describe('buildDays', () => {
-  it('zero-fills the full window and sums the headline total (input+output only)', () => {
+  it('zero-fills the full window and sums the headline total (cache included)', () => {
     const days = buildDays([
       sample(Date.UTC(2026, 7, 10, 4, 0), 100, 50, 9000), // 2026-08-10 +08
       sample(Date.UTC(2026, 7, 10, 9, 0), 20, 30, 1000), // same day +08
@@ -40,12 +40,14 @@ describe('buildDays', () => {
     expect(days).toHaveLength(14)
     const byDate = new Map(days.map((d) => [d.date, d]))
     const target = byDate.get('2026-08-10')
-    expect(target?.totalTokens).toBe(210) // 150 + 50 + 10; cacheRead 10000 excluded
+    expect(target?.totalTokens).toBe(10210) // 150 + 50 + 10 + cacheRead 10000 (user decision)
     expect(target?.inputTokens).toBe(125)
     expect(target?.outputTokens).toBe(85)
     expect(target?.cacheReadTokens).toBe(10000)
     expect(target?.requests).toBe(3)
+    expect(target?.byModel).toEqual([{ provider: 'unknown', model: 'unknown', tokens: 10210 }])
     expect(byDate.get('2026-08-13')?.totalTokens).toBe(0) // zero-filled
+    expect(byDate.get('2026-08-13')?.byModel).toEqual([])
     expect(days[days.length - 1].date).toBe('2026-08-14') // window ends today
   })
 
@@ -60,9 +62,9 @@ describe('buildDays', () => {
 describe('buildSummary', () => {
   it('computes today / week / month30 / all with cacheRead separated', () => {
     const buckets = new Map([
-      ['2026-08-14', { date: '2026-08-14', totalTokens: 100, inputTokens: 60, outputTokens: 40, cacheReadTokens: 5000, requests: 2 }],
-      ['2026-08-10', { date: '2026-08-10', totalTokens: 50, inputTokens: 30, outputTokens: 20, cacheReadTokens: 3000, requests: 1 }],
-      ['2026-06-01', { date: '2026-06-01', totalTokens: 999, inputTokens: 900, outputTokens: 99, cacheReadTokens: 0, requests: 5 }],
+      ['2026-08-14', { date: '2026-08-14', totalTokens: 100, inputTokens: 60, outputTokens: 40, cacheReadTokens: 5000, requests: 2, byModel: [] }],
+      ['2026-08-10', { date: '2026-08-10', totalTokens: 50, inputTokens: 30, outputTokens: 20, cacheReadTokens: 3000, requests: 1, byModel: [] }],
+      ['2026-06-01', { date: '2026-06-01', totalTokens: 999, inputTokens: 900, outputTokens: 99, cacheReadTokens: 0, requests: 5, byModel: [] }],
     ])
     const summary = buildSummary(buckets, 'local', FIXED_NOW, plus8)
     expect(summary.today).toBe(100)

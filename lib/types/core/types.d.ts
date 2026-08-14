@@ -18,17 +18,28 @@ export interface UsageSample {
     /** Event timestamp (epoch ms) — the day bucketing anchor. */
     time: number;
     usage: TokenUsageLike;
+    /** Provider/model of the request that produced this step (from the preceding request events). */
+    provider?: string;
+    model?: string;
+}
+/** Per-model token total within one day bucket (sorted desc by tokens). */
+export interface ModelBucket {
+    provider: string;
+    model: string;
+    tokens: number;
 }
 /** One day of aggregated usage, keyed by date in the requested timezone. */
 export interface TokenDayBucket {
     /** YYYY-MM-DD in the requested timezone. */
     date: string;
-    /** inputTokens + outputTokens (headline number; cacheRead excluded by design). */
+    /** inputTokens + outputTokens + cacheReadTokens (user decision: cache counts). */
     totalTokens: number;
     inputTokens: number;
     outputTokens: number;
     cacheReadTokens: number;
     requests: number;
+    /** Per-model totals, most-used first (tooltip top-3 + others). */
+    byModel: ModelBucket[];
 }
 /** Rolling-window totals shown in the panel header. */
 export interface TokenSummary {

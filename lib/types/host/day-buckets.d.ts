@@ -1,4 +1,4 @@
-import type { TokenDayBucket, UsageSample } from '../core/types.ts';
+import type { TokenDayBucket, UsageSample } from '../core/types';
 export type TimezonePolicy = 'local' | 'utc';
 /** Machine-local UTC offset (hours, positive east) at the given instant. */
 export declare function localOffsetHours(time: number): number;

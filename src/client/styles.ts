@@ -60,6 +60,9 @@ export const STYLE_TEXT = [
   '.td-tip { position: fixed; z-index: 9999; background: rgba(17, 24, 39, 0.96); color: #fff; font-size: 12px; padding: 10px 12px; border-radius: 10px; pointer-events: none; white-space: nowrap; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35); border: 1px solid rgba(255, 255, 255, 0.08); backdrop-filter: blur(6px); }',
   '.td-tip .big { font-weight: 650; font-size: 12.5px; }',
   '.td-tip .sub { color: #a8b0c0; font-size: 11px; margin-top: 2px; }',
+  '.td-tip .sub.model { display: flex; justify-content: space-between; gap: 24px; margin-top: 3px; }',
+  '.td-tip .sub.model .name { white-space: nowrap; }',
+  '.td-tip .sub.model .val { color: #d7dce6; font-variant-numeric: tabular-nums; }',
   '.td-tip .divider { height: 1px; background: rgba(255, 255, 255, 0.12); margin: 5px 0; }',
   '.td-daywrap { position: relative; height: 100%; display: flex; flex-direction: column; }',
   '.td-bars { display: flex; align-items: flex-end; gap: 4px; flex: 1; min-height: 0; padding: 8px 18px 0 0; border-bottom: 1px solid var(--td-border); }',
@@ -70,9 +73,10 @@ export const STYLE_TEXT = [
   '.td-axis { display: flex; justify-content: space-between; padding: 8px 18px 0 0; font-size: 11px; color: var(--td-muted); }',
   '.td-status { color: var(--td-muted); padding: 24px 0; text-align: center; }',
   '.td-foot { display: flex; gap: 18px; flex-wrap: wrap; padding: 10px 20px; border-top: 1px solid var(--td-border); color: var(--td-muted); font-size: 11px; }',
-  '.td-entry { display: inline-flex; align-items: center; gap: 6px; background: transparent; border: 0; color: inherit; cursor: pointer; padding: 6px 8px; border-radius: 6px; font-size: 12px; }',
-  '.td-entry:hover { background: var(--td-c0); }',
-  '.td-entry svg { display: block; }',
+  '.td-entry { display: inline-flex; align-items: center; gap: 5px; background: transparent; border: 0; color: var(--td-muted); cursor: pointer; padding: 7px 10px; border-radius: 8px; transition: color .15s, background .15s; }',
+  '.td-entry:hover { background: var(--td-card); color: var(--td-text); }',
+  '.td-entry-label { font-size: 11.5px; font-weight: 600; letter-spacing: .35px; text-transform: lowercase; font-variant-numeric: tabular-nums; }',
+  '.td-entry-chevron { font-size: 10px; opacity: .7; }',
 ].join('\n')
 
 export function injectStyles(): void {
