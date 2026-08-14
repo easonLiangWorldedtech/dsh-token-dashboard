@@ -1,0 +1,43 @@
+# dsh-token-dashboard · wayfinder map
+
+## Destination
+
+`@apodemakeles/dsh-token-dashboard` 达到 **npm 发布（首版 0.1.0 起，按 tag 迭代）**：一个用户可 `dsh plugin add` 安装的 DeepSeek Harness 插件，在 Web GUI 侧边栏提供 Token 入口与专用面板，以 GitHub 风格热力图展示全局**每日/每周 token 总消耗**；发布时创建公开 GitHub 仓库；界面中英双语；MIT 协议。地图携带实现：ticket 直接产出代码与发布物，不只是决策。
+
+## Notes
+
+- **域**：DeepSeek Harness (DSH) 插件开发。DSH 是 Cordis 插件系统；本插件属于 web profile 的 client-ui 插件家族。
+- **锁定决策**（charting 阶段 grilling 产出，本 map 的 standing constraints）：
+  - UI：侧边栏入口 + 专用面板（参考 aionui-panel 模式）。
+  - 指标：**只显示 total tokens**（v1 不做 input/output/cache 明细、不做成本）。
+  - 范围：**全局统计、无项目过滤**。
+  - 分支/发布：极简 main + tag；手动 npm publish。
+  - 仓库时机：先本地开发，发布前创建公开 GitHub 仓库 → tracker 用**本地 markdown**（.scratch/）。
+  - npm 名：`@apodemakeles/dsh-token-dashboard`；协议 MIT；界面中英双语。
+- **参考实现**：`@linxin666/dsh-client-ui-aionui-panel` v0.1.7（本机已安装，源码在 `~/.dsh/profiles/web/node_modules/@linxin666/dsh-client-ui-aionui-panel`）。
+- **环境事实**：会话日志 `~/.dsh/sessions/<project>/<session-id>/session.jsonl.zstd`（JSONL+zstd，含逐请求 `usage` 事件：inputTokens/outputTokens/cacheReadTokens）；DSH checkout `/usr/local/lib/node_modules/@deepseek-ai/dsh`；安装命令 `dsh plugin add <pkg>`。
+- **技能**：会话可用 `prototype`、`grilling`、`domain-modeling`、`research`。
+
+## Decisions so far
+
+<!-- 每行一个已关闭 ticket：gist + 链接；细节在 ticket 的 Answer 里 -->
+
+- [01 · DSH client-ui 插件注册机制](issues/01-dsh-client-ui-plugin-api.md) — 单包双面 Cordis 插件（host 主导出 + ./client browser 半区）；侧边栏入口用 `sidebar.footer.action` slot（顶部条目需 DOM 注入）；面板走 `shell.overlay`；host 数据 API 用 `ctx.webServer.register`（`/api/token-dashboard/*`），client 同源 fetch/EventSource。
+- [02 · 历史 token 消耗的数据源与聚合方案](issues/02-token-data-source.md) — 走 `ctx.sessionPersistence` seam（不选 sqlite/otel/手工 fs）；usage 在 assistant/chunk 与 assistant/message 各一次、按 (turn,step) 去重；total 推荐 input+output（不含 cacheRead，由 05 确认）；zstd 多帧须逐帧解；按浏览器时区切日；需 revision+lastSeq 增量缓存。
+- [03 · 社区 DSH 插件的 npm 打包、发布与安装约定](issues/03-npm-packaging.md) — package.json 只需 dsh.bundle.patch + dsh.client 两个 DSH 专属字段；ESM 双半区包（host 主导出 + ./client browser 半区）；无需 dsh-client-ui-* 前缀；dsh plugin add 自动 reconcile、重启 dsh web 生效；首版 0.1.0、peer ^0.1.0-rc.6、cordis ^4.0.1、publishConfig public、README 三件套。
+
+## Not yet specified
+
+<!-- 雾区：能感觉到但还无法精确开 ticket 的问题；前沿推进后毕业为 ticket -->
+
+- **官方生态收录**：发布后是否提交到 dsh-web-ui 插件全家桶 / 官方插件清单。
+
+## Out of scope
+
+<!-- 目的地之外的、有意识排除的工作；只在重画目的地时以新 effort 回归 -->
+
+- 成本 ($) 换算与模型定价表。
+- input/output/cacheRead 明细展示（用户决策：只 total tokens）。
+- 按项目过滤、项目维度统计。
+- 远程/多机数据聚合（仅本机数据）。
+- 并入 dsh-web-ui 全家桶仓库维护（独立仓库自维护）。

@@ -1,0 +1,13 @@
+# @apodemakeles/dsh-token-dashboard bundle patch: inserts the dual-face plugin
+# row into the web profile roster. Applied as a profile bundle layer (the
+# `dsh.bundle.patch` manifest field); install with
+# `dsh plugin --profile web add @apodemakeles/dsh-token-dashboard`.
+#
+# The row is a bare plugin by package name: the node half (exports ".") runs
+# in the host process (session-log aggregation service + /api/token-dashboard/*
+# routes), and the `dsh.client` declaration in package.json makes the browser
+# half (exports "./client", served at /plugins/token-dashboard/client.js) load
+# in the web GUI.
+- insert:
+    - id: token-dashboard
+      name: '@apodemakeles/dsh-token-dashboard'
