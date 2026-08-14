@@ -1,7 +1,7 @@
 # 08 · 本地安装与自用验证（HITL）
 
 Type: task
-Status: open
+Status: claimed
 Blocked by: 03, 07
 
 ## Question

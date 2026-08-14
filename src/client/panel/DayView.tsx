@@ -6,6 +6,7 @@ import type { MouseEvent } from 'react'
 import type { PropsLocale } from '@deepseek-ai/dsh-client-ui-slots'
 import type { TokenDayBucket } from '../../core/types'
 import { fmt } from '../fmt'
+import { Tip } from './Tip'
 
 const DAY_COUNT = 30
 
@@ -20,10 +21,7 @@ export function DayView({ days, t }: DayViewProps) {
   const list = useMemo(() => [...recent].reverse(), [recent])
 
   const onMove = (day: TokenDayBucket, event: MouseEvent<HTMLElement>): void => {
-    const box = (event.currentTarget as HTMLElement).closest('.td-daywrap')
-    if (box === null) return
-    const rect = box.getBoundingClientRect()
-    setTip({ day, x: event.clientX - rect.left, y: event.clientY - rect.top })
+    setTip({ day, x: event.clientX, y: event.clientY })
   }
 
   return (
@@ -52,14 +50,14 @@ export function DayView({ days, t }: DayViewProps) {
         {list.length === 0 && <div className="td-status">{t('empty')}</div>}
       </div>
       {tip !== null && (
-        <div className="td-tip" style={{ left: tip.x + 14, top: tip.y + 14 }}>
+        <Tip x={tip.x} y={tip.y}>
           <div className="big">{t('hoverTotal', { date: tip.day.date, total: fmt(tip.day.totalTokens) })}</div>
           <div className="sub">{t('hoverSplit', { input: fmt(tip.day.inputTokens), output: fmt(tip.day.outputTokens) })}</div>
           <div className="sub">{t('hoverRequests', { n: tip.day.requests })}</div>
           {tip.day.cacheReadTokens > 0 && (
             <div className="sub">{t('hoverCache', { n: fmt(tip.day.cacheReadTokens) })}</div>
           )}
-        </div>
+        </Tip>
       )}
     </div>
   )

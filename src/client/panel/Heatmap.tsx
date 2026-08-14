@@ -7,6 +7,7 @@ import type { MouseEvent } from 'react'
 import type { PropsLocale } from '@deepseek-ai/dsh-client-ui-slots'
 import type { TokenDayBucket } from '../../core/types'
 import { fmt } from '../fmt'
+import { Tip } from './Tip'
 
 interface TooltipState {
   day: TokenDayBucket
@@ -57,17 +58,14 @@ export function Heatmap({ days, t }: HeatmapProps) {
   }, [days])
 
   const onMove = (day: TokenDayBucket, event: MouseEvent<HTMLElement>): void => {
-    const box = (event.currentTarget as HTMLElement).closest('.td-grid')
-    if (box === null) return
-    const rect = box.getBoundingClientRect()
-    setTip({ day, x: event.clientX - rect.left, y: event.clientY - rect.top })
+    setTip({ day, x: event.clientX, y: event.clientY })
   }
 
   return (
     <div className="td-grid">
       <div className="td-months">
         {months.map((m) => (
-          <span key={m.col} style={{ marginLeft: m.col * 15 }}>{m.label}</span>
+          <span key={m.col} style={{ left: m.col * 15 }}>{m.label}</span>
         ))}
       </div>
       {rows.map((row, weekday) => (
@@ -89,14 +87,14 @@ export function Heatmap({ days, t }: HeatmapProps) {
         </div>
       ))}
       {tip !== null && (
-        <div className="td-tip" style={{ left: tip.x + 14, top: tip.y + 14 }}>
+        <Tip x={tip.x} y={tip.y}>
           <div className="big">{t('hoverTotal', { date: tip.day.date, total: fmt(tip.day.totalTokens) })}</div>
           <div className="sub">{t('hoverSplit', { input: fmt(tip.day.inputTokens), output: fmt(tip.day.outputTokens) })}</div>
           <div className="sub">{t('hoverRequests', { n: tip.day.requests })}</div>
           {tip.day.cacheReadTokens > 0 && (
             <div className="sub">{t('hoverCache', { n: fmt(tip.day.cacheReadTokens) })}</div>
           )}
-        </div>
+        </Tip>
       )}
     </div>
   )

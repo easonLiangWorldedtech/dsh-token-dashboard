@@ -1,0 +1,47 @@
+- generic [ref=f1e4]:
+  - generic [ref=f1e7]:
+    - generic [ref=f1e8]:
+      - button "新建会话" [ref=f1e9] [cursor=pointer]
+      - button "收起侧边栏" [ref=f1e31] [cursor=pointer]
+    - button "新建会话" [ref=f1e34] [cursor=pointer]:
+      - generic [ref=f1e37]: 新会话
+    - button "SSH" [ref=f1e38] [cursor=pointer]
+    - generic [ref=f1e46]:
+      - generic [ref=f1e47]:
+        - generic [ref=f1e48]: 工作区
+        - generic [ref=f1e50]:
+          - button "搜索会话" [ref=f1e51] [cursor=pointer]
+          - textbox "搜索会话…"
+        - generic [ref=f1e55]:
+          - button "视图选项" [ref=f1e57] [cursor=pointer]
+          - button "添加工作区" [ref=f1e60] [cursor=pointer]
+      - tree "会话" [ref=f1e66]:
+        - treeitem "basic-workflow" [ref=f1e69] [cursor=pointer]
+        - treeitem "dsh-token-dashboard" [expanded] [ref=f1e77] [cursor=pointer]
+        - treeitem "stable" [ref=f1e86] [cursor=pointer]
+    - generic [ref=f1e92]:
+      - button "Token" [ref=f1e95] [cursor=pointer]
+      - button "设置" [ref=f1e102] [cursor=pointer]
+  - generic [ref=f1e116]:
+    - generic [ref=f1e119]:
+      - generic [ref=f1e123]: 探索未至之境
+      - generic [ref=f1e124]: 预览版
+    - generic [ref=f1e125]:
+      - button "选择工作区" [ref=f1e126] [cursor=pointer]
+      - button "PTC 模式" [ref=f1e134] [cursor=pointer]
+    - generic [ref=f1e144] [cursor=pointer]:
+      - textbox "选择工作区" [ref=f1e147]:
+        - /placeholder: 选择一个工作区开始
+      - generic [ref=f1e148]:
+        - generic [ref=f1e149]:
+          - button "命令" [disabled]
+        - generic [ref=f1e150]:
+          - button "发送消息" [disabled]
+  - generic [ref=f1e153]:
+    - generic [ref=f1e154]:
+      - button "文件" [ref=f1e155] [cursor=pointer]
+      - button "变更" [ref=f1e156] [cursor=pointer]
+      - button "收起面板" [ref=f1e157] [cursor=pointer]
+    - generic [ref=f1e160]:
+      - textbox "按文件名搜索" [ref=f1e168]
+      - generic [ref=f1e169]: 项目为空
