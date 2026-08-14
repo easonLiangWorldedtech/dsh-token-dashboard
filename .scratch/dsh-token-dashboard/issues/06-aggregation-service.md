@@ -1,7 +1,7 @@
 # 06 · 数据聚合服务实现（host 端扫描 + 日总量 API）
 
 Type: task
-Status: open
+Status: claimed
 Blocked by: 02, 04
 
 ## Question
