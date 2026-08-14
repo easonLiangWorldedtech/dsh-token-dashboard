@@ -1,0 +1,1 @@
+{"version":3,"file":"Heatmap.d.ts","sourceRoot":"","sources":["../../../../src/client/panel/Heatmap.tsx"],"names":[],"mappings":"AAMA,OAAO,KAAK,EAAE,WAAW,EAAE,MAAM,kCAAkC,CAAA;AACnE,OAAO,KAAK,EAAE,cAAc,EAAE,MAAM,kBAAkB,CAAA;AA6BtD,MAAM,WAAW,YAAa,SAAQ,WAAW,CAAC,iBAAiB,CAAC;IAClE,IAAI,EAAE,SAAS,cAAc,EAAE,CAAA;CAChC;AAED,wBAAgB,OAAO,CAAC,EAAE,IAAI,EAAE,CAAC,EAAE,EAAE,YAAY,+BAqFhD"}
