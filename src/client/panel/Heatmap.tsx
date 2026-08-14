@@ -16,7 +16,12 @@ interface TooltipState {
 }
 
 const WEEKDAYS = ['日', '一', '二', '三', '四', '五', '六']
-const COL_PITCH = 21 // 16px cell + 5px gap
+const CELL = 20
+const GAP = 6
+const COL_PITCH = CELL + GAP // 26px per column
+const WEEKDAY_COL = 36 // 28px weekday + 8px padding-right
+const LABEL_GAP = 6 // flex gap between the weekday span and the first cell
+const MONTH_LEFT = (col: number): number => WEEKDAY_COL + LABEL_GAP + col * COL_PITCH
 const LEVELS = ['var(--td-c1)', 'var(--td-c2)', 'var(--td-c3)', 'var(--td-c4)', 'var(--td-c5)']
 
 function colorOf(total: number, max: number): string {
@@ -67,7 +72,7 @@ export function Heatmap({ days, t }: HeatmapProps) {
       <div className="td-grid">
       <div className="td-months">
         {months.map((m) => (
-          <span key={m.col} style={{ left: m.col * COL_PITCH }}>{m.label}</span>
+          <span key={m.col} style={{ left: MONTH_LEFT(m.col) }}>{m.label}</span>
         ))}
       </div>
       {rows.map((row, weekday) => (
