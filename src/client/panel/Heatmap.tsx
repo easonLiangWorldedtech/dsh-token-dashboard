@@ -52,14 +52,31 @@ export function Heatmap({ days, t }: HeatmapProps) {
     return table
   }, [days])
 
-  // Month labels: one per month present, positioned at its first column.
+  // Month labels: one per month present, centered over the month's block
+  // of columns (first day column -> last day column).
   const months = useMemo(() => {
-    const out: Array<{ label: string; col: number }> = []
+    const out: Array<{ label: string; center: number }> = []
+    let firstCol = 0
     days.forEach((day, index) => {
       const label = day.date.slice(5, 7) + '月'
+      const col = Math.floor(index / 7)
       const last = out[out.length - 1]
-      if (last === undefined || last.label !== label) out.push({ label, col: Math.floor(index / 7) })
+      if (last === undefined || last.label !== label) {
+        if (last !== undefined) {
+          // Previous month's last column = the column of the day right before
+          // this one (boundary months can share a column with the next).
+          const prevCol = Math.floor((index - 1) / 7)
+          last.center = (firstCol + prevCol) * COL_PITCH / 2 + CELL / 2
+        }
+        out.push({ label, center: 0 })
+        firstCol = col
+      }
     })
+    const lastEntry = out[out.length - 1]
+    if (lastEntry !== undefined && days.length > 0) {
+      const lastCol = Math.floor((days.length - 1) / 7)
+      lastEntry.center = (firstCol + lastCol) * COL_PITCH / 2 + CELL / 2
+    }
     return out
   }, [days])
 
@@ -72,7 +89,7 @@ export function Heatmap({ days, t }: HeatmapProps) {
       <div className="td-grid">
       <div className="td-months">
         {months.map((m) => (
-          <span key={m.col} style={{ left: MONTH_LEFT(m.col) }}>{m.label}</span>
+          <span key={m.label} style={{ left: MONTH_LEFT(0) + m.center, transform: 'translateX(-50%)' }}>{m.label}</span>
         ))}
       </div>
       {rows.map((row, weekday) => (

@@ -46,7 +46,7 @@ export const STYLE_TEXT = [
   '.td-body-scroll { flex: 1; min-height: 0; overflow: auto; padding-top: 4px; }',
   '.td-pager { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }',
   '.td-pager .td-cap { color: var(--td-muted); font-size: 12px; min-width: 130px; text-align: center; }',
-  '.td-grid-wrap { min-height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 10px 0 6px; }',
+  '.td-grid-wrap { height: 100%; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 10px 0 6px; overflow: hidden; }',
   '.td-grid { display: inline-block; }',
   '.td-months { position: relative; display: block; height: 17px; margin-bottom: 4px; }',
   '.td-months span { position: absolute; top: 0; font-size: 10.5px; color: var(--td-muted); white-space: nowrap; font-weight: 500; }',
