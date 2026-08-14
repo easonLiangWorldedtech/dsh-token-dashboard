@@ -1,7 +1,7 @@
 # 10 · 开发联调环境：本地包挂载与 dsh web 热更工作流
 
 Type: task
-Status: open
+Status: claimed
 Blocked by: 04
 
 ## Question

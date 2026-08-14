@@ -28,7 +28,7 @@ pnpm install && pnpm build
 dsh plugin --profile web add link:$(pwd)
 ```
 
-See [.scratch/dsh-token-dashboard/map.md](.scratch/dsh-token-dashboard/map.md) for the project map (planning tracker).
+See [.scratch/dsh-token-dashboard/map.md](.scratch/dsh-token-dashboard/map.md) for the project map (planning tracker), and [docs/dev-loop.md](docs/dev-loop.md) for the full dev loop (watch / HMR / restart rules).
 
 ## Known limitations
 

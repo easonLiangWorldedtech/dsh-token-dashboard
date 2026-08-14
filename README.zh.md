@@ -28,7 +28,7 @@ pnpm install && pnpm build
 dsh plugin --profile web add link:$(pwd)
 ```
 
-项目地图（规划 tracker）见 [.scratch/dsh-token-dashboard/map.md](.scratch/dsh-token-dashboard/map.md)。
+项目地图（规划 tracker）见 [.scratch/dsh-token-dashboard/map.md](.scratch/dsh-token-dashboard/map.md)，完整联调循环（watch / HMR / 重启规则）见 [docs/dev-loop.md](docs/dev-loop.md)。
 
 ## 已知限制
 
