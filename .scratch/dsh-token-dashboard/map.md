@@ -23,6 +23,7 @@
 <!-- 每行一个已关闭 ticket：gist + 链接；细节在 ticket 的 Answer 里 -->
 
 - [01 · DSH client-ui 插件注册机制](issues/01-dsh-client-ui-plugin-api.md) — 单包双面 Cordis 插件（host 主导出 + ./client browser 半区）；侧边栏入口用 `sidebar.footer.action` slot（顶部条目需 DOM 注入）；面板走 `shell.overlay`；host 数据 API 用 `ctx.webServer.register`（`/api/token-dashboard/*`），client 同源 fetch/EventSource。
+- [05 · 热力图面板的视觉与交互原型](issues/05-heatmap-prototype.md) — Variant A 胜出（周热力图 + 日视图两 tab）；默认 26 周可翻页；本地时区切日、可配 UTC；total=input+output、cacheRead 仅 tooltip 附注；打开时加载+手动刷新（无轮询/SSE）。原型全集在 throwaway 分支 `prototype/05-heatmap`。
 - [04 · 仓库脚手架](issues/04-repo-scaffold.md) — 首个 commit `2165e13`：main 分支、双半区骨架（host: webServer+sessionPersistence；client: slots+locale）、build=tsdown&&tsc -b（三个 tsdown 坑已记）、README 三件套 + blob hash 配对、冒烟测试通过、npm pack 16 文件齐全。
 - [02 · 历史 token 消耗的数据源与聚合方案](issues/02-token-data-source.md) — 走 `ctx.sessionPersistence` seam（不选 sqlite/otel/手工 fs）；usage 在 assistant/chunk 与 assistant/message 各一次、按 (turn,step) 去重；total 推荐 input+output（不含 cacheRead，由 05 确认）；zstd 多帧须逐帧解；按浏览器时区切日；需 revision+lastSeq 增量缓存。
 - [03 · 社区 DSH 插件的 npm 打包、发布与安装约定](issues/03-npm-packaging.md) — package.json 只需 dsh.bundle.patch + dsh.client 两个 DSH 专属字段；ESM 双半区包（host 主导出 + ./client browser 半区）；无需 dsh-client-ui-* 前缀；dsh plugin add 自动 reconcile、重启 dsh web 生效；首版 0.1.0、peer ^0.1.0-rc.6、cordis ^4.0.1、publishConfig public、README 三件套。
