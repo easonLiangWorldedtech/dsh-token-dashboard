@@ -73,9 +73,9 @@ export const STYLE_TEXT = [
   '.td-axis { display: flex; justify-content: space-between; padding: 8px 18px 0 0; font-size: 11px; color: var(--td-muted); }',
   '.td-status { color: var(--td-muted); padding: 24px 0; text-align: center; }',
   '.td-foot { display: flex; gap: 18px; flex-wrap: wrap; padding: 10px 20px; border-top: 1px solid var(--td-border); color: var(--td-muted); font-size: 11px; }',
-  '.td-entry { display: inline-flex; align-items: center; gap: 5px; background: transparent; border: 0; color: var(--td-muted); cursor: pointer; padding: 7px 10px; border-radius: 8px; transition: color .15s, background .15s; }',
+  '.td-entry { display: inline-flex; align-items: center; gap: 6px; background: transparent; border: 0; color: var(--td-muted); cursor: pointer; padding: 8px 13px; border-radius: 9px; transition: color .15s, background .15s; }',
   '.td-entry:hover { background: var(--td-card); color: var(--td-text); }',
-  '.td-entry-label { font-size: 11.5px; font-weight: 600; letter-spacing: .35px; text-transform: lowercase; font-variant-numeric: tabular-nums; }',
+  '.td-entry-label { font-size: 13.5px; font-weight: 650; letter-spacing: .4px; text-transform: lowercase; font-variant-numeric: tabular-nums; }',
   '.td-entry-chevron { font-size: 10px; opacity: .7; }',
 ].join('\n')
 

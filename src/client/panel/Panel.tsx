@@ -4,7 +4,8 @@
 // - local timezone only (UTC override removed by user decision)
 // - load on open + manual refresh; no polling, no SSE.
 
-import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from 'react'
+import { Component, useCallback, useEffect, useMemo, useState, useSyncExternalStore } from 'react'
+import type { ErrorInfo, ReactNode } from 'react'
 import type { PropsLocale } from '@deepseek-ai/dsh-client-ui-slots'
 import type { TokenDayBucket, TokenSummary } from '../../core/types'
 import { fetchDays, fetchSummary } from '../api'
@@ -19,6 +20,21 @@ const TZ = 'local'
 type View = 'week' | 'day'
 
 export interface PanelProps extends PropsLocale<'token-dashboard'> {}
+
+/** Contains any render error inside the panel: the slot entry must survive
+ *  bad host data instead of unmounting the whole plugin surface. */
+class PanelErrorBoundary extends Component<{ fallback: ReactNode; children: ReactNode }, { failed: boolean }> {
+  state = { failed: false }
+  static getDerivedStateFromError(): { failed: boolean } {
+    return { failed: true }
+  }
+  componentDidCatch(error: unknown, info: ErrorInfo): void {
+    console.error('dsh-token-dashboard: panel render error', error, info)
+  }
+  render(): ReactNode {
+    return this.state.failed ? this.props.fallback : this.props.children
+  }
+}
 
 const REFRESH_ICON = (
   <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -99,6 +115,7 @@ export function TokenPanel({ t }: PanelProps) {
       </div>
 
       <div className="td-body">
+        <PanelErrorBoundary fallback={<div className="td-status">{t('error', { message: 'render' })}</div>}>
         {view === 'week' && (
           <div className="td-pager">
             <button className="td-btn" onClick={() => setOffsetWeeks((n) => n + WEEKS)}>{t('older')}</button>
@@ -114,6 +131,7 @@ export function TokenPanel({ t }: PanelProps) {
           {!loading && error === null && view === 'week' && <Heatmap days={days} t={t} />}
           {!loading && error === null && view === 'day' && <DayView days={days} t={t} />}
         </div>
+        </PanelErrorBoundary>
         {view === 'week' && (
           <div className="td-legend">
             <span>{t('legendLess')}</span>

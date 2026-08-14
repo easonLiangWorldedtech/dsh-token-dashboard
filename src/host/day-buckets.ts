@@ -46,7 +46,7 @@ function addUsage(bucket: TokenDayBucket, sample: UsageSample): void {
   bucket.requests += 1
   const provider = sample.provider ?? 'unknown'
   const model = sample.model ?? 'unknown'
-  const key = provider + '\u0000' + model
+  const key = provider + '::' + model
   const byModel = (bucket as TokenDayBucket & { byModelMap?: Map<string, ModelBucket> }).byModelMap
     ?? ((bucket as TokenDayBucket & { byModelMap?: Map<string, ModelBucket> }).byModelMap = new Map())
   let entry = byModel.get(key)
