@@ -14,6 +14,9 @@ export interface TokenUsageLike {
   cacheWriteTokens?: number
 }
 
+/** Day-boundary policy: machine-local timezone or UTC (05 decision). */
+export type TimezonePolicy = 'local' | 'utc'
+
 /** One deduped usage sample: the final usage reported for one (turn, step). */
 export interface UsageSample {
   turn: number

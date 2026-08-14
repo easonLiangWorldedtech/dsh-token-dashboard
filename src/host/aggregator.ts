@@ -10,8 +10,8 @@
 // re-folded. Kept in memory for the host process lifetime (v1): the cold
 // scan is ~0.5s for 15 sessions and refresh is then tail-only.
 
-import type { TokenDayBucket, TokenSummary, UsageSample } from '../core/types'
-import { buildBucketMap, buildDays, buildSummary, type TimezonePolicy } from './day-buckets'
+import type { TimezonePolicy, TokenDayBucket, TokenSummary, UsageSample } from '../core/types'
+import { buildBucketMap, buildDays, buildSummary } from './day-buckets'
 import { foldUsage, mergeUsage } from './usage-fold'
 
 /** Minimal structural contract satisfied by ctx.sessionPersistence. */

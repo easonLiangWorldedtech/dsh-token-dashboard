@@ -1,7 +1,7 @@
 # 07 · UI 实现：侧边栏入口 + Token 面板 + 热力图
 
 Type: task
-Status: open
+Status: claimed
 Blocked by: 01, 04, 05, 06, 10
 
 ## Question

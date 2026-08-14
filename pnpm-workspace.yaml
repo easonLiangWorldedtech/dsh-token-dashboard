@@ -56,3 +56,5 @@ minimumReleaseAgeExclude:
   - '@deepseek-ai/dsh-user-questions@0.1.0-rc.6'
   - '@deepseek-ai/dsh-workspace@0.1.0-rc.6'
   - '@deepseek-ai/schemastery@3.18.1'
+  - '@deepseek-ai/dsh-client-ui-layout@0.1.0-rc.6'
+  - '@deepseek-ai/dsh-client-ui-theme@0.1.0-rc.6'
