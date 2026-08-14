@@ -16,6 +16,7 @@ interface TooltipState {
 }
 
 const WEEKDAYS = ['日', '一', '二', '三', '四', '五', '六']
+const COL_PITCH = 21 // 16px cell + 5px gap
 const LEVELS = ['var(--td-c1)', 'var(--td-c2)', 'var(--td-c3)', 'var(--td-c4)', 'var(--td-c5)']
 
 function colorOf(total: number, max: number): string {
@@ -62,10 +63,11 @@ export function Heatmap({ days, t }: HeatmapProps) {
   }
 
   return (
-    <div className="td-grid">
+    <div className="td-grid-wrap">
+      <div className="td-grid">
       <div className="td-months">
         {months.map((m) => (
-          <span key={m.col} style={{ left: m.col * 15 }}>{m.label}</span>
+          <span key={m.col} style={{ left: m.col * COL_PITCH }}>{m.label}</span>
         ))}
       </div>
       {rows.map((row, weekday) => (
@@ -86,6 +88,7 @@ export function Heatmap({ days, t }: HeatmapProps) {
           )}
         </div>
       ))}
+      </div>
       {tip !== null && (
         <Tip x={tip.x} y={tip.y}>
           <div className="big">{t('hoverTotal', { date: tip.day.date, total: fmt(tip.day.totalTokens) })}</div>

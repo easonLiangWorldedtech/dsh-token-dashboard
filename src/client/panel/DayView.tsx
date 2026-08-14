@@ -29,15 +29,19 @@ export function DayView({ days, t }: DayViewProps) {
   return (
     <div className="td-daywrap">
       <div className="td-bars">
-        {recent.map((day, index) => (
-          <span
-            className={index === recent.length - 1 ? 'td-bar today' : 'td-bar'}
-            key={day.date}
-            style={{ height: max > 0 ? Math.max(3, Math.round((day.totalTokens / max) * 100)) + '%' : '3px' }}
-            onMouseMove={(e) => onMove(day, e)}
-            onMouseLeave={() => setTip(null)}
-          />
-        ))}
+        {recent.map((day, index) =>
+          day.totalTokens <= 0 ? (
+            <span className="td-bar empty" key={day.date} />
+          ) : (
+            <span
+              className={index === recent.length - 1 ? 'td-bar today' : 'td-bar'}
+              key={day.date}
+              style={{ height: max > 0 ? Math.max(3, Math.round((day.totalTokens / max) * 100)) + '%' : '3px' }}
+              onMouseMove={(e) => onMove(day, e)}
+              onMouseLeave={() => setTip(null)}
+            />
+          ),
+        )}
       </div>
       <div className="td-axis">
         <span>{firstDate}</span>
