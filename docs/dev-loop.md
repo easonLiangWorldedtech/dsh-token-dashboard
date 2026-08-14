@@ -50,4 +50,5 @@ client 半区：GUI 侧边栏出现 Token 入口，点击打开热力图面板�
 
 - tsdown 对 platform:"node" 默认 fixedExtension 会产出 .mjs——本包已在 tsdown.config.ts 显式关闭；build 顺序必须是 tsdown && tsc -b（否则 clean 抹掉类型）。
 - 缺失 lib/client.js 会让 GUI 启动即报错（client bundles not found）——发布前必须 build（prepublishOnly 已保证）。
+- lib/client.js 必须是闭包工厂 bundle：外壳按 classic script 执行它，要求其自行调用 `window.__ModuleLoader__.load({id, factory})` 注册（外部依赖走 factory 注入的 `require`，解析冻结模块表）。普通 ESM 产物（`export {...}`）会让 GUI 启动报 `loaded without registering "@apodemakeles/dsh-token-dashboard" via __ModuleLoader__.load`——tsdown.config.ts 的 client 半区已用 banner/intro/footer 包装 cjs 输出（同 dsh-web-ui `shared/tsdown.client.ts` 范式），勿改回 format:"esm"。
 - ~/.dsh/cordis.patch.yml（全局）只放用户层 patch，本插件不应写入那里；它作为 bundle 层随 dsh.profile.bundles 生效。

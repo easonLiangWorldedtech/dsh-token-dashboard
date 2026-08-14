@@ -23,6 +23,7 @@
 <!-- 每行一个已关闭 ticket：gist + 链接；细节在 ticket 的 Answer 里 -->
 
 - [01 · DSH client-ui 插件注册机制](issues/01-dsh-client-ui-plugin-api.md) — 单包双面 Cordis 插件（host 主导出 + ./client browser 半区）；侧边栏入口用 `sidebar.footer.action` slot（顶部条目需 DOM 注入）；面板走 `shell.overlay`；host 数据 API 用 `ctx.webServer.register`（`/api/token-dashboard/*`），client 同源 fetch/EventSource。
+- [10 · 开发联调环境](issues/10-dev-loop.md) — 本地包 link 挂载进 web profile（bundle 自动 reconcile）；重启后插件加载、/api/token-dashboard/* 实测存活返回真实数据；docs/dev-loop.md 联调手册；client-bundle HMR 验证并入 07。
 - [06 · 数据聚合服务实现](issues/06-aggregation-service.md) — sessionPersistence seam + revision/lastSeq 增量缓存；(turn,step) 后写覆盖 fold；DST 安全 local/utc 切日；total=input+output、cacheRead 独立桶；/api/token-dashboard/{summary,days}（26 周默认+offset 翻页）；20 测试全绿含本机全量会话日志交叉核对。
 - [05 · 热力图面板的视觉与交互原型](issues/05-heatmap-prototype.md) — Variant A 胜出（周热力图 + 日视图两 tab）；默认 26 周可翻页；本地时区切日、可配 UTC；total=input+output、cacheRead 仅 tooltip 附注；打开时加载+手动刷新（无轮询/SSE）。原型全集在 throwaway 分支 `prototype/05-heatmap`。
 - [04 · 仓库脚手架](issues/04-repo-scaffold.md) — 首个 commit `2165e13`：main 分支、双半区骨架（host: webServer+sessionPersistence；client: slots+locale）、build=tsdown&&tsc -b（三个 tsdown 坑已记）、README 三件套 + blob hash 配对、冒烟测试通过、npm pack 16 文件齐全。
