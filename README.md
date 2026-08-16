@@ -6,6 +6,16 @@ A DeepSeek Harness (DSH) web GUI plugin: a token-consumption heatmap panel. It s
 
 > Status: **released v0.1.0** — GitHub distribution is live; npm publishing is pending the maintainer's 2FA setup.
 
+## Screenshots
+
+### Weekly heatmap
+
+![Weekly token-usage heatmap](docs/images/token-dashboard-weekly.png)
+
+### Daily view
+
+![Daily token-usage bar chart](docs/images/token-dashboard-daily.png)
+
 ## What it does
 
 - **Host half** — listens to live `session/event`, flushes through DSH's durability barrier, and sends minimal usage deltas to a persistent Worker. The Worker owns SQLite (`node:sqlite`), commits facts/checkpoints atomically, and serves one consistent snapshot endpoint.

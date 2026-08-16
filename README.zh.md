@@ -6,6 +6,16 @@
 
 > 状态：**已发布 v0.1.0** —— GitHub 分发已上线；npm 发布待维护者配置 2FA。
 
+## 界面截图
+
+### 周视图
+
+![Token 用量周视图热力图](docs/images/token-dashboard-weekly.png)
+
+### 日视图
+
+![Token 用量日视图柱状图](docs/images/token-dashboard-daily.png)
+
 ## 功能
 
 - **宿主半区** —— 监听实时 `session/event`，经过 DSH 持久化屏障后把最小 usage 增量发给常驻 Worker；Worker 独占 SQLite（`node:sqlite`），原子提交 facts/checkpoint，并提供单一一致快照接口。
