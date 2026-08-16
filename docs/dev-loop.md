@@ -1,6 +1,6 @@
 # 开发联调循环（dev loop）
 
-本插件是「单包双面」DSH 插件：host 半区（node 进程）跑聚合服务与 /api/token-dashboard/* 路由，client 半区（浏览器）跑面板 UI。联调循环分三档，改动落在哪个半区决定需要哪一档。
+本插件是「单包双面 + 常驻 Worker」DSH 插件：host 半区（node 进程）跑实时采集、持久化 Worker 与 /api/token-dashboard/snapshot 路由，client 半区（浏览器）跑面板 UI。联调循环分三档，改动落在哪个半区决定需要哪一档。
 
 ## 一次性挂载（每台机器一次）
 
@@ -37,10 +37,14 @@
 
 host 半区（重启后）：
 
-    curl 'http://127.0.0.1:3080/api/token-dashboard/summary?tz=local'
-    curl 'http://127.0.0.1:3080/api/token-dashboard/days?weeks=26&offsetWeeks=0&tz=local'
+    curl 'http://127.0.0.1:3080/api/token-dashboard/snapshot?weeks=26&offsetWeeks=0'
 
-返回 {"ok":true,"value":{...}} 信封。
+返回 {"ok":true,"value":{...}} 信封；不再有 /summary 与 /days 旧路由。
+
+CLI 冒烟：
+
+    dsh-token-dashboard status
+    dsh-token-dashboard verify
 
 client 半区：GUI 侧边栏出现 Token 入口，点击打开热力图面板。
 
@@ -48,6 +52,8 @@ client 半区：GUI 侧边栏出现 Token 入口，点击打开热力图面板�
 
 ## 已知坑（沿自 03/04 研究）
 
+- 持久化 Worker 是独立 Node entry：必须 `pnpm build` 生成 `lib/usage-worker.js` 并随包发布；Git/npm 安装不得依赖现场 build。
+- host/Worker/SQLite 改动后必须重启 DSH；浏览器 HMR 不会重载常驻 Worker。
 - tsdown 对 platform:"node" 默认 fixedExtension 会产出 .mjs——本包已在 tsdown.config.ts 显式关闭；build 顺序必须是 tsdown && tsc -b（否则 clean 抹掉类型）。
 - 缺失 lib/client.js 会让 GUI 启动即报错（client bundles not found）——发布前必须 build（prepublishOnly 已保证）。
 - lib/client.js 必须是闭包工厂 bundle：外壳按 classic script 执行它，要求其自行调用 `window.__ModuleLoader__.load({id, factory})` 注册（外部依赖走 factory 注入的 `require`，解析冻结模块表）。普通 ESM 产物（`export {...}`）会让 GUI 启动报 `loaded without registering "@apodemakeles/dsh-token-dashboard" via __ModuleLoader__.load`——tsdown.config.ts 的 client 半区已用 banner/intro/footer 包装 cjs 输出（同 dsh-web-ui `shared/tsdown.client.ts` 范式），勿改回 format:"esm"。
