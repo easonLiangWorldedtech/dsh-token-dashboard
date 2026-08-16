@@ -7,8 +7,8 @@ import * as client from '../src/client/index'
 import { UsageWorker } from '../src/host/usage-worker'
 
 describe('dual-face plugin shape', () => {
-  it('host half declares webServer + sessionPersistence and exports apply', () => {
-    expect(host.inject).toEqual(['webServer', 'sessionPersistence'])
+  it('host half declares webServer + sessionPersistence + sessions and exports apply', () => {
+    expect(host.inject).toEqual(['webServer', 'sessionPersistence', 'sessions'])
     expect(typeof host.apply).toBe('function')
   })
 

@@ -6,7 +6,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import type { SessionEvent } from '@deepseek-ai/dsh-session'
 import type { LifecycleIdentity } from '../src/durable/contracts'
 import { UsageCollector } from '../src/durable/collector'
-import { InitRecoveryCoordinator, type PersistenceLike } from '../src/durable/init-recovery'
+import { InitRecoveryCoordinator, SqliteCoordinatorStore, type PersistenceLike } from '../src/durable/init-recovery'
 import { SqliteUsageStore } from '../src/durable/sqlite-store'
 import type { UsageWorkerClient } from '../src/durable/worker-client'
 
@@ -65,7 +65,7 @@ describe('InitRecoveryCoordinator', () => {
       ['s2', { revision: 'r1', events: [usageMessage(0)] }],
     ])
     const coordinator = new InitRecoveryCoordinator({
-      store,
+      store: new SqliteCoordinatorStore(store),
       persistence: fakePersistence(sessions),
       collector: dummyCollector(),
       worker: dummyWorkerClient(),
@@ -104,7 +104,7 @@ describe('InitRecoveryCoordinator', () => {
     sessions.set('s1', { revision: 'r1', events: [usageMessage(0, 1, 1), usageMessage(1, 1, 2)] })
 
     const coordinator = new InitRecoveryCoordinator({
-      store,
+      store: new SqliteCoordinatorStore(store),
       persistence,
       collector: dummyCollector(),
       worker: dummyWorkerClient(),
@@ -130,7 +130,7 @@ describe('InitRecoveryCoordinator', () => {
       },
     }
     const coordinator = new InitRecoveryCoordinator({
-      store,
+      store: new SqliteCoordinatorStore(store),
       persistence,
       collector: dummyCollector(),
       worker: dummyWorkerClient(),

@@ -9,6 +9,7 @@ import {
   DRAIN_TIMEOUT_MS,
   PROTOCOL_VERSION,
   SNAPSHOT_TIMEOUT_MS,
+  type LifecycleIdentity,
   type ProjectionBatch,
   type SnapshotQuery,
   type SnapshotV1,
@@ -40,6 +41,40 @@ export interface WorkerClientOptions {
   readonly dbPath: string
   readonly workerFactory?: () => WorkerLike
   readonly restartDelaysMs?: readonly number[]
+}
+
+export interface RunEpochInfo {
+  epochId: number
+  state: 'arming' | 'active' | 'clean'
+  startedAtMs: number
+  cleanAtMs: number | null
+}
+
+export interface ProjectionProgress {
+  phase: 'initializing' | 'recovering' | 'ready' | 'degraded' | 'rebuild_required' | 'error'
+  discoveredSessions: number
+  completedSessions: number
+  scanningSessions: number
+  retryingSessions: number
+  failedSessions: number
+  startedAtMs: number | null
+  completedAtMs: number | null
+  lastErrorCode: string | null
+  lastErrorMessage: string | null
+}
+
+export interface CheckpointInfo {
+  lifecyclePk: number
+  lastSeq: number
+  routeProvider: string | null
+  routeModel: string | null
+  bootstrapComplete: boolean
+  sourceRevision: string | null
+}
+
+export interface BaselineInfo {
+  lifecyclePk: number
+  sourceRevision: string
 }
 
 const DEFAULT_RESTART_DELAYS_MS = [100, 1000, 5000] as const
@@ -150,6 +185,90 @@ export class UsageWorkerClient {
     }
     const result = await this.request(command, DRAIN_TIMEOUT_MS)
     if (result.ok) return result.value as { commitGeneration: number; stateGeneration: number }
+    throw new WorkerRpcError(result.error.code, result.error.message, result.error.retryable)
+  }
+
+  async beginRunEpoch(startedAtMs = Date.now()): Promise<number> {
+    await this.start()
+    const command: WorkerCommand = { type: 'begin_run', requestId: this.nextRequestId(), hostGeneration: this.generation, protocolVersion: PROTOCOL_VERSION, startedAtMs }
+    const result = await this.request(command)
+    if (result.ok) return (result.value as { epochId: number }).epochId
+    throw new WorkerRpcError(result.error.code, result.error.message, result.error.retryable)
+  }
+
+  async activateRunEpoch(epochId: number, baselines: ReadonlyArray<{ lifecyclePk: number; sourceRevision: string }>): Promise<void> {
+    await this.start()
+    const command: WorkerCommand = { type: 'activate_run', requestId: this.nextRequestId(), hostGeneration: this.generation, protocolVersion: PROTOCOL_VERSION, epochId, baselines }
+    const result = await this.request(command)
+    if (!result.ok) throw new WorkerRpcError(result.error.code, result.error.message, result.error.retryable)
+  }
+
+  async markRunClean(epochId: number, cleanAtMs = Date.now()): Promise<void> {
+    await this.start()
+    const command: WorkerCommand = { type: 'mark_run_clean', requestId: this.nextRequestId(), hostGeneration: this.generation, protocolVersion: PROTOCOL_VERSION, epochId, cleanAtMs }
+    const result = await this.request(command)
+    if (!result.ok) throw new WorkerRpcError(result.error.code, result.error.message, result.error.retryable)
+  }
+
+  async getLastRunEpoch(): Promise<RunEpochInfo | null> {
+    await this.start()
+    const command: WorkerCommand = { type: 'get_last_run', requestId: this.nextRequestId(), hostGeneration: this.generation, protocolVersion: PROTOCOL_VERSION }
+    const result = await this.request(command)
+    if (result.ok) return result.value as RunEpochInfo | null
+    throw new WorkerRpcError(result.error.code, result.error.message, result.error.retryable)
+  }
+
+  async upsertLifecycle(lifecycle: LifecycleIdentity, discoveredAtMs = Date.now()): Promise<number> {
+    await this.start()
+    const command: WorkerCommand = { type: 'upsert_lifecycle', requestId: this.nextRequestId(), hostGeneration: this.generation, protocolVersion: PROTOCOL_VERSION, lifecycle, discoveredAtMs }
+    const result = await this.request(command)
+    if (result.ok) return (result.value as { lifecyclePk: number }).lifecyclePk
+    throw new WorkerRpcError(result.error.code, result.error.message, result.error.retryable)
+  }
+
+  async getLifecycle(lifecycle: LifecycleIdentity): Promise<number | null> {
+    await this.start()
+    const command: WorkerCommand = { type: 'get_lifecycle', requestId: this.nextRequestId(), hostGeneration: this.generation, protocolVersion: PROTOCOL_VERSION, lifecycle }
+    const result = await this.request(command)
+    if (result.ok) return (result.value as { lifecyclePk: number | null }).lifecyclePk
+    throw new WorkerRpcError(result.error.code, result.error.message, result.error.retryable)
+  }
+
+  async getCheckpoint(lifecyclePk: number): Promise<CheckpointInfo> {
+    await this.start()
+    const command: WorkerCommand = { type: 'get_checkpoint', requestId: this.nextRequestId(), hostGeneration: this.generation, protocolVersion: PROTOCOL_VERSION, lifecyclePk }
+    const result = await this.request(command)
+    if (result.ok) return result.value as CheckpointInfo
+    throw new WorkerRpcError(result.error.code, result.error.message, result.error.retryable)
+  }
+
+  async getProjectionProgress(): Promise<ProjectionProgress> {
+    await this.start()
+    const command: WorkerCommand = { type: 'get_projection_progress', requestId: this.nextRequestId(), hostGeneration: this.generation, protocolVersion: PROTOCOL_VERSION }
+    const result = await this.request(command)
+    if (result.ok) return result.value as ProjectionProgress
+    throw new WorkerRpcError(result.error.code, result.error.message, result.error.retryable)
+  }
+
+  async updateProjectionProgress(update: Record<string, unknown>, now = Date.now()): Promise<void> {
+    await this.start()
+    const command: WorkerCommand = { type: 'update_projection_progress', requestId: this.nextRequestId(), hostGeneration: this.generation, protocolVersion: PROTOCOL_VERSION, update, now }
+    const result = await this.request(command)
+    if (!result.ok) throw new WorkerRpcError(result.error.code, result.error.message, result.error.retryable)
+  }
+
+  async setProjectionReady(now = Date.now()): Promise<void> {
+    await this.start()
+    const command: WorkerCommand = { type: 'set_projection_ready', requestId: this.nextRequestId(), hostGeneration: this.generation, protocolVersion: PROTOCOL_VERSION, now }
+    const result = await this.request(command)
+    if (!result.ok) throw new WorkerRpcError(result.error.code, result.error.message, result.error.retryable)
+  }
+
+  async getBaselines(epochId: number): Promise<BaselineInfo[]> {
+    await this.start()
+    const command: WorkerCommand = { type: 'get_baselines', requestId: this.nextRequestId(), hostGeneration: this.generation, protocolVersion: PROTOCOL_VERSION, epochId }
+    const result = await this.request(command)
+    if (result.ok) return result.value as BaselineInfo[]
     throw new WorkerRpcError(result.error.code, result.error.message, result.error.retryable)
   }
 

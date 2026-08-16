@@ -97,7 +97,7 @@ export interface ProjectionState {
     readonly errors: ReadonlyMap<number, IngestionErrorRecord>;
 }
 /** Stable cross-thread command names. */
-export type WorkerCommandType = 'init' | 'project' | 'snapshot' | 'drain' | 'shutdown';
+export type WorkerCommandType = 'init' | 'project' | 'snapshot' | 'drain' | 'shutdown' | 'begin_run' | 'activate_run' | 'mark_run_clean' | 'get_last_run' | 'upsert_lifecycle' | 'get_lifecycle' | 'get_checkpoint' | 'get_projection_progress' | 'update_projection_progress' | 'set_projection_ready' | 'get_baselines';
 export interface SnapshotQuery {
     readonly weeks: number;
     readonly offsetWeeks: number;
@@ -136,7 +136,89 @@ export interface WorkerShutdownRequest {
     readonly hostGeneration: string;
     readonly protocolVersion: number;
 }
-export type WorkerCommand = WorkerInitRequest | WorkerProjectRequest | WorkerSnapshotRequest | WorkerDrainRequest | WorkerShutdownRequest;
+export interface WorkerBeginRunRequest {
+    readonly type: 'begin_run';
+    readonly requestId: string;
+    readonly hostGeneration: string;
+    readonly protocolVersion: number;
+    readonly startedAtMs: number;
+}
+export interface WorkerActivateRunRequest {
+    readonly type: 'activate_run';
+    readonly requestId: string;
+    readonly hostGeneration: string;
+    readonly protocolVersion: number;
+    readonly epochId: number;
+    readonly baselines: ReadonlyArray<{
+        lifecyclePk: number;
+        sourceRevision: string;
+    }>;
+}
+export interface WorkerMarkRunCleanRequest {
+    readonly type: 'mark_run_clean';
+    readonly requestId: string;
+    readonly hostGeneration: string;
+    readonly protocolVersion: number;
+    readonly epochId: number;
+    readonly cleanAtMs: number;
+}
+export interface WorkerGetLastRunRequest {
+    readonly type: 'get_last_run';
+    readonly requestId: string;
+    readonly hostGeneration: string;
+    readonly protocolVersion: number;
+}
+export interface WorkerUpsertLifecycleRequest {
+    readonly type: 'upsert_lifecycle';
+    readonly requestId: string;
+    readonly hostGeneration: string;
+    readonly protocolVersion: number;
+    readonly lifecycle: LifecycleIdentity;
+    readonly discoveredAtMs: number;
+}
+export interface WorkerGetLifecycleRequest {
+    readonly type: 'get_lifecycle';
+    readonly requestId: string;
+    readonly hostGeneration: string;
+    readonly protocolVersion: number;
+    readonly lifecycle: LifecycleIdentity;
+}
+export interface WorkerGetCheckpointRequest {
+    readonly type: 'get_checkpoint';
+    readonly requestId: string;
+    readonly hostGeneration: string;
+    readonly protocolVersion: number;
+    readonly lifecyclePk: number;
+}
+export interface WorkerGetProjectionProgressRequest {
+    readonly type: 'get_projection_progress';
+    readonly requestId: string;
+    readonly hostGeneration: string;
+    readonly protocolVersion: number;
+}
+export interface WorkerUpdateProjectionProgressRequest {
+    readonly type: 'update_projection_progress';
+    readonly requestId: string;
+    readonly hostGeneration: string;
+    readonly protocolVersion: number;
+    readonly update: Record<string, unknown>;
+    readonly now: number;
+}
+export interface WorkerSetProjectionReadyRequest {
+    readonly type: 'set_projection_ready';
+    readonly requestId: string;
+    readonly hostGeneration: string;
+    readonly protocolVersion: number;
+    readonly now: number;
+}
+export interface WorkerGetBaselinesRequest {
+    readonly type: 'get_baselines';
+    readonly requestId: string;
+    readonly hostGeneration: string;
+    readonly protocolVersion: number;
+    readonly epochId: number;
+}
+export type WorkerCommand = WorkerInitRequest | WorkerProjectRequest | WorkerSnapshotRequest | WorkerDrainRequest | WorkerShutdownRequest | WorkerBeginRunRequest | WorkerActivateRunRequest | WorkerMarkRunCleanRequest | WorkerGetLastRunRequest | WorkerUpsertLifecycleRequest | WorkerGetLifecycleRequest | WorkerGetCheckpointRequest | WorkerGetProjectionProgressRequest | WorkerUpdateProjectionProgressRequest | WorkerSetProjectionReadyRequest | WorkerGetBaselinesRequest;
 export type WorkerResult = {
     readonly ok: true;
     readonly requestId: string;

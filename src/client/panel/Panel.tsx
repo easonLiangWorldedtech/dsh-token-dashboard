@@ -4,18 +4,18 @@
 // - local timezone only (UTC override removed by user decision)
 // - load on open + manual refresh; no polling, no SSE.
 
-import { Component, useCallback, useEffect, useMemo, useState, useSyncExternalStore } from 'react'
+import { Component, useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import type { ErrorInfo, ReactNode } from 'react'
 import type { PropsLocale } from '@deepseek-ai/dsh-client-ui-slots'
-import type { TokenDayBucket, TokenSummary } from '../../core/types'
-import { fetchDays, fetchSummary } from '../api'
+import type { SnapshotV1 } from '../../durable/contracts'
+import { fetchSnapshot } from '../snapshot'
 import { fmt } from '../fmt'
 import { panelStore, closePanel } from '../store'
 import { DayView } from './DayView'
 import { Heatmap } from './Heatmap'
+import { SnapshotStatus } from './SnapshotStatus'
 
 const WEEKS = 26
-const TZ = 'local'
 
 type View = 'week' | 'day'
 
@@ -47,29 +47,32 @@ export function TokenPanel({ t }: PanelProps) {
   const open = useSyncExternalStore(panelStore.subscribe, panelStore.getSnapshot)
   const [view, setView] = useState<View>('week')
   const [offsetWeeks, setOffsetWeeks] = useState(0)
-  const [summary, setSummary] = useState<TokenSummary | null>(null)
-  const [days, setDays] = useState<TokenDayBucket[]>([])
+  const [snapshot, setSnapshot] = useState<SnapshotV1 | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [refreshedAt, setRefreshedAt] = useState<Date | null>(null)
+  const abortRef = useRef<AbortController | null>(null)
 
   const load = useCallback(async () => {
+    abortRef.current?.abort()
+    const controller = new AbortController()
+    abortRef.current = controller
     setLoading(true)
     setError(null)
     try {
-      const [nextSummary, nextDays] = await Promise.all([
-        fetchSummary(TZ),
-        fetchDays(TZ, WEEKS, offsetWeeks),
-      ])
-      setSummary(nextSummary)
-      setDays(nextDays.days)
+      const next = await fetchSnapshot({ weeks: WEEKS, offsetWeeks, signal: controller.signal })
+      if (controller.signal.aborted) return
+      setSnapshot(next)
       setRefreshedAt(new Date())
     } catch (cause) {
+      if (controller.signal.aborted) return
       setError(cause instanceof Error ? cause.message : String(cause))
     } finally {
-      setLoading(false)
+      if (!controller.signal.aborted) setLoading(false)
     }
   }, [offsetWeeks])
+
+  useEffect(() => () => abortRef.current?.abort(), [])
 
   useEffect(() => {
     if (!open) return
@@ -108,10 +111,10 @@ export function TokenPanel({ t }: PanelProps) {
       </div>
 
       <div className="td-stats">
-        <div className="td-stat"><div className="num">{summary === null ? '–' : fmt(summary.today)}</div><div className="lbl">{t('today')}</div></div>
-        <div className="td-stat"><div className="num">{summary === null ? '–' : fmt(summary.week)}</div><div className="lbl">{t('week')}</div></div>
-        <div className="td-stat"><div className="num">{summary === null ? '–' : fmt(summary.month30)}</div><div className="lbl">{t('month30')}</div></div>
-        <div className="td-stat"><div className="num">{summary === null ? '–' : fmt(summary.all)}</div><div className="lbl">{t('all')}</div></div>
+        <div className="td-stat"><div className="num">{snapshot === null ? '–' : fmt(snapshot.summary.today)}</div><div className="lbl">{t('today')}</div></div>
+        <div className="td-stat"><div className="num">{snapshot === null ? '–' : fmt(snapshot.summary.week)}</div><div className="lbl">{t('week')}</div></div>
+        <div className="td-stat"><div className="num">{snapshot === null ? '–' : fmt(snapshot.summary.month30)}</div><div className="lbl">{t('month30')}</div></div>
+        <div className="td-stat"><div className="num">{snapshot === null ? '–' : fmt(snapshot.summary.all)}</div><div className="lbl">{t('all')}</div></div>
       </div>
 
       <div className="td-body">
@@ -128,10 +131,11 @@ export function TokenPanel({ t }: PanelProps) {
         <div className="td-body-scroll">
           {loading && <div className="td-status">{t('loading')}</div>}
           {!loading && error !== null && <div className="td-status">{t('error', { message: error })}</div>}
-          {!loading && error === null && view === 'week' && <Heatmap days={days} t={t} />}
-          {!loading && error === null && view === 'day' && <DayView days={days} t={t} />}
+          {!loading && error === null && view === 'week' && <Heatmap days={snapshot?.days ?? []} t={t} />}
+          {!loading && error === null && view === 'day' && <DayView days={snapshot?.days ?? []} t={t} />}
         </div>
         </PanelErrorBoundary>
+        {snapshot !== null && <SnapshotStatus snapshot={snapshot} t={t} />}
         {view === 'week' && (
           <div className="td-legend">
             <span>{t('legendLess')}</span>
@@ -144,7 +148,7 @@ export function TokenPanel({ t }: PanelProps) {
       </div>
 
       <div className="td-foot">
-        {summary !== null && <span>{t('sessions', { n: summary.sessionCount })}</span>}
+        {snapshot !== null && <span>{t('sessions', { n: snapshot.summary.sessionCount })}</span>}
         {timeLabel !== '' && <span>{timeLabel}</span>}
       </div>
     </div>

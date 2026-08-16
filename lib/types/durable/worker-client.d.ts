@@ -1,4 +1,4 @@
-import { type ProjectionBatch, type SnapshotQuery, type SnapshotV1 } from './contracts';
+import { type LifecycleIdentity, type ProjectionBatch, type SnapshotQuery, type SnapshotV1 } from './contracts';
 /** Minimal Worker-like surface used by tests. */
 export interface WorkerLike {
     postMessage(value: unknown): void;
@@ -10,6 +10,36 @@ export interface WorkerClientOptions {
     readonly dbPath: string;
     readonly workerFactory?: () => WorkerLike;
     readonly restartDelaysMs?: readonly number[];
+}
+export interface RunEpochInfo {
+    epochId: number;
+    state: 'arming' | 'active' | 'clean';
+    startedAtMs: number;
+    cleanAtMs: number | null;
+}
+export interface ProjectionProgress {
+    phase: 'initializing' | 'recovering' | 'ready' | 'degraded' | 'rebuild_required' | 'error';
+    discoveredSessions: number;
+    completedSessions: number;
+    scanningSessions: number;
+    retryingSessions: number;
+    failedSessions: number;
+    startedAtMs: number | null;
+    completedAtMs: number | null;
+    lastErrorCode: string | null;
+    lastErrorMessage: string | null;
+}
+export interface CheckpointInfo {
+    lifecyclePk: number;
+    lastSeq: number;
+    routeProvider: string | null;
+    routeModel: string | null;
+    bootstrapComplete: boolean;
+    sourceRevision: string | null;
+}
+export interface BaselineInfo {
+    lifecyclePk: number;
+    sourceRevision: string;
 }
 export declare class UsageWorkerClient {
     private readonly generation;
@@ -43,6 +73,20 @@ export declare class UsageWorkerClient {
         commitGeneration: number;
         stateGeneration: number;
     }>;
+    beginRunEpoch(startedAtMs?: number): Promise<number>;
+    activateRunEpoch(epochId: number, baselines: ReadonlyArray<{
+        lifecyclePk: number;
+        sourceRevision: string;
+    }>): Promise<void>;
+    markRunClean(epochId: number, cleanAtMs?: number): Promise<void>;
+    getLastRunEpoch(): Promise<RunEpochInfo | null>;
+    upsertLifecycle(lifecycle: LifecycleIdentity, discoveredAtMs?: number): Promise<number>;
+    getLifecycle(lifecycle: LifecycleIdentity): Promise<number | null>;
+    getCheckpoint(lifecyclePk: number): Promise<CheckpointInfo>;
+    getProjectionProgress(): Promise<ProjectionProgress>;
+    updateProjectionProgress(update: Record<string, unknown>, now?: number): Promise<void>;
+    setProjectionReady(now?: number): Promise<void>;
+    getBaselines(epochId: number): Promise<BaselineInfo[]>;
     /** Stop admission, flush commands, close DB and terminate the Worker. */
     shutdown(): Promise<void>;
     private attach;
