@@ -8,6 +8,9 @@
   },
   "main": "lib/index.js",
   "types": "lib/types/index.d.ts",
+  "bin": {
+    "dsh-token-dashboard": "lib/cli.js"
+  },
   "exports": {
     ".": {
       "types": "./lib/types/index.d.ts",

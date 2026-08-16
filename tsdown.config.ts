@@ -51,6 +51,18 @@ export default defineConfig([
     clean: false,
   },
   {
+    // Local maintenance CLI: dsh-token-dashboard status/verify/rebuild/...
+    entry: { cli: 'src/cli.ts' },
+    format: ['esm'],
+    platform: 'node',
+    fixedExtension: false,
+    dts: false,
+    deps: { onlyBundle: false },
+    outDir: 'lib',
+    sourcemap: true,
+    clean: false,
+  },
+  {
     // The browser half is NOT a plain ESM module: the shell executes the file
     // as a classic script and expects it to register itself via
     // window.__ModuleLoader__.load({id, factory}). The banner/intro/footer wrap
