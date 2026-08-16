@@ -3,6 +3,9 @@
   "description": "DSH web GUI token-consumption heatmap: a daily/weekly total-token usage panel fed by session-log usage events",
   "version": "0.1.0",
   "type": "module",
+  "engines": {
+    "node": ">=22.5.0"
+  },
   "main": "lib/index.js",
   "types": "lib/types/index.d.ts",
   "exports": {

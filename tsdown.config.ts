@@ -37,6 +37,20 @@ export default defineConfig([
     sourcemap: true,
   },
   {
+    // Persistent usage Worker: a second Node entry loaded by the host half via
+    // `new Worker(new URL('./usage-worker.js', import.meta.url))`. It must be
+    // present in the published package, so it is part of the normal build.
+    entry: { 'usage-worker': 'src/host/usage-worker.ts' },
+    format: ['esm'],
+    platform: 'node',
+    fixedExtension: false,
+    dts: false,
+    deps: { onlyBundle: false },
+    outDir: 'lib',
+    sourcemap: true,
+    clean: false,
+  },
+  {
     // The browser half is NOT a plain ESM module: the shell executes the file
     // as a classic script and expects it to register itself via
     // window.__ModuleLoader__.load({id, factory}). The banner/intro/footer wrap

@@ -162,6 +162,7 @@ export interface WorkerSnapshotRequest {
   readonly hostGeneration: string
   readonly protocolVersion: number
   readonly query: SnapshotQuery
+  readonly pendingBatches: number
 }
 
 export interface WorkerDrainRequest {
