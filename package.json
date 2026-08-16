@@ -1,7 +1,16 @@
 {
   "name": "@apodemakeles/dsh-token-dashboard",
   "description": "DSH web GUI token-consumption heatmap: a daily/weekly total-token usage panel fed by session-log usage events",
-  "version": "0.1.0",
+  "version": "0.2.0",
+  "keywords": [
+    "dsh-plugin",
+    "deepseek-harness",
+    "dsh",
+    "token-usage",
+    "token-dashboard",
+    "dashboard",
+    "heatmap"
+  ],
   "type": "module",
   "engines": {
     "node": ">=22.5.0"
@@ -91,6 +100,10 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/apodemakeles/dsh-token-dashboard.git"
+  },
+  "homepage": "https://github.com/apodemakeles/dsh-token-dashboard#readme",
+  "bugs": {
+    "url": "https://github.com/apodemakeles/dsh-token-dashboard/issues"
   },
   "scripts": {
     "build": "tsdown && tsc -b",
