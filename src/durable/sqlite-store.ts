@@ -339,7 +339,21 @@ export class SqliteUsageStore {
       }
       const result = projectBatch(seed, batch, now)
       if (result.status === 'gap') throw new ProjectionGapError(result.reason ?? 'projection gap')
-      if (result.status === 'noop') return { committed: false, checkpoint: current.lastSeq, commitGeneration: this.commitGeneration }
+      if (result.status === 'noop') {
+        if (batch.bootstrapComplete === true && batch.sourceRevision !== undefined) {
+          this.db.prepare(
+            `INSERT INTO session_checkpoint (
+               lifecycle_pk, last_seq, route_provider, route_model, bootstrap_complete, source_revision, updated_at_ms
+             ) VALUES (?, ?, ?, ?, ?, ?, ?)
+             ON CONFLICT(lifecycle_pk) DO UPDATE SET
+               bootstrap_complete = excluded.bootstrap_complete,
+               source_revision = excluded.source_revision,
+               updated_at_ms = excluded.updated_at_ms`,
+          ).run(lifecyclePk, current.lastSeq, current.routeProvider, current.routeModel, 1, batch.sourceRevision, now)
+          this.bumpState()
+        }
+        return { committed: false, checkpoint: current.lastSeq, commitGeneration: this.commitGeneration }
+      }
 
       const upsertFact = this.db.prepare(
         `INSERT INTO usage_fact (
