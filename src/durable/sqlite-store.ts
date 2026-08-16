@@ -4,6 +4,7 @@
 // by the maintenance CLI in read-only/owner mode. All writes are serialized
 // through explicit transactions; facts and checkpoint always commit together.
 
+import { chmodSync } from 'node:fs'
 import { DatabaseSync } from 'node:sqlite'
 import type {
   IngestionErrorRecord,
@@ -209,6 +210,13 @@ export class SqliteUsageStore {
     this.db.exec('PRAGMA synchronous = FULL')
     this.db.exec('PRAGMA journal_mode = WAL')
     this.db.exec('PRAGMA foreign_keys = ON')
+    if (!options.readOnly) {
+      try {
+        chmodSync(dbPath, 0o600)
+      } catch {
+        // Best effort; some filesystems ignore mode.
+      }
+    }
     this.probe()
     if (!options.readOnly) {
       this.db.exec('PRAGMA application_id = ' + DB_APPLICATION_ID)
