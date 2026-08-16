@@ -4,7 +4,7 @@
 
 一个 DeepSeek Harness (DSH) Web GUI 插件：token 消耗热力图面板。以 GitHub 贡献图风格展示本机**所有项目的每日/每周 token 总消耗**。Usage facts 由常驻 Worker 投影到本地 SQLite，打开面板不会扫描会话日志。
 
-> 状态：**已发布 v0.1.0** —— GitHub 分发已上线；npm 发布待维护者配置 2FA。
+> 状态：**已发布 v0.2.0** —— GitHub 分发已上线；当前未发布到 npm。
 
 ## 界面截图
 
@@ -32,11 +32,7 @@ dsh plugin --profile web add github:apodemakeles/dsh-token-dashboard
 
 安装后**重启 dsh web**。打开任意项目会话，点击侧边栏的 **Token** 入口即可看到热力图面板。
 
-从 npm（即将提供——等维护者完成 2FA 配置后发布）：
-
-```bash
-dsh plugin --profile web add @apodemakeles/dsh-token-dashboard
-```
+当前未发布 npm 包，请使用上面的 GitHub 安装方式。
 
 ## 数据与运维
 

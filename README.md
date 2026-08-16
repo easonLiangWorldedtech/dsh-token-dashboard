@@ -4,7 +4,7 @@ English | [中文](README.zh.md)
 
 A DeepSeek Harness (DSH) web GUI plugin: a token-consumption heatmap panel. It shows your **total token usage per day / per week** across all projects on this machine, GitHub-contributions style. Usage facts are projected into a local SQLite database by a persistent Worker, so opening the panel never scans session logs.
 
-> Status: **released v0.1.0** — GitHub distribution is live; npm publishing is pending the maintainer's 2FA setup.
+> Status: **released v0.2.0** — GitHub distribution is live. The package is not currently published to npm.
 
 ## Screenshots
 
@@ -32,11 +32,7 @@ dsh plugin --profile web add github:apodemakeles/dsh-token-dashboard
 
 Then **restart dsh web**. Open any project session and click the **Token** entry in the sidebar.
 
-From npm (coming soon — once the package is published):
-
-```bash
-dsh plugin --profile web add @apodemakeles/dsh-token-dashboard
-```
+The npm package is not currently published; use the GitHub installation above.
 
 ## Data and operations
 
