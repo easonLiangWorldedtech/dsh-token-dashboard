@@ -3,7 +3,7 @@ declare module '@deepseek-ai/dsh-client-ui-slots' {
         'token-dashboard': TokenKey;
     }
 }
-export type TokenKey = 'title' | 'today' | 'week' | 'month30' | 'all' | 'weekView' | 'dayView' | 'refresh' | 'refreshedAt' | 'close' | 'older' | 'newer' | 'recentWeeks' | 'rangeWeeks' | 'legendLess' | 'legendMore' | 'hoverTotal' | 'hoverRequests' | 'loading' | 'error' | 'entryLabel' | 'others' | 'sessions' | 'empty';
+export type TokenKey = 'title' | 'today' | 'week' | 'month30' | 'all' | 'weekView' | 'dayView' | 'refresh' | 'refreshedAt' | 'close' | 'older' | 'newer' | 'recentWeeks' | 'rangeWeeks' | 'legendLess' | 'legendMore' | 'hoverTotal' | 'hoverRequests' | 'loading' | 'error' | 'entryLabel' | 'others' | 'sessions' | 'empty' | 'initializing' | 'recovering' | 'degraded' | 'warnings' | 'pending';
 export declare const zh: Record<TokenKey, string>;
 export declare const en: Record<TokenKey, string>;
 //# sourceMappingURL=locales.d.ts.map

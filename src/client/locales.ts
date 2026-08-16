@@ -33,6 +33,11 @@ export type TokenKey =
   | 'others'
   | 'sessions'
   | 'empty'
+  | 'initializing'
+  | 'recovering'
+  | 'degraded'
+  | 'warnings'
+  | 'pending'
 
 export const zh: Record<TokenKey, string> = {
   title: 'Token 用量',
@@ -59,6 +64,11 @@ export const zh: Record<TokenKey, string> = {
   others: 'others',
   sessions: '{n} 个会话',
   empty: '暂无数据',
+  initializing: '初始化中…',
+  recovering: '恢复中…',
+  degraded: '数据不完整',
+  warnings: '{n} 条警告',
+  pending: '{n} 个批次待写入',
 }
 
 export const en: Record<TokenKey, string> = {
@@ -86,4 +96,9 @@ export const en: Record<TokenKey, string> = {
   others: 'others',
   sessions: '{n} sessions',
   empty: 'No data yet',
+  initializing: 'Initializing…',
+  recovering: 'Recovering…',
+  degraded: 'Incomplete data',
+  warnings: '{n} warnings',
+  pending: '{n} batches pending',
 }
