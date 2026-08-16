@@ -11,3 +11,7 @@ Blocked by: 09
 ## Answer
 
 2026-08-16 用户确认没有 npm 账号并要求跳过 npm 发布。保留 `package.json` 的 discoverability metadata，README 明确只提供 GitHub 安装；本次仅创建 GitHub `v0.2.0` Release 和官方插件区介绍。
+
+- GitHub Release：https://github.com/apodemakeles/dsh-token-dashboard/releases/tag/v0.2.0
+- DSH 官方插件区：https://github.com/deepseek-ai/deepseek-harness/discussions/2420
+- GitHub Topics：`dsh-plugin`、`deepseek-harness`、`dsh`、`token-usage`、`token-dashboard`、`dashboard`、`heatmap`
