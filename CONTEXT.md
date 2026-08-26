@@ -29,14 +29,14 @@
 - **退出排空**：唯一 async disposer 以 4 秒为正常排空预算，依次停止 admission、关闭 host 批次、等待 DSH flush 链、提交并确认 Worker 批次、最后标记 run clean，再关闭数据库和 Worker；超时或失败时不得标记 clean，交由下次异常恢复。
 - **恢复边界**：已进入权威 JSONL、但尚未提交或尚未 ack 的 SQLite 投影均可通过 revision、checkpoint 与幂等重投恢复；只有硬中断时仍仅存在于 DSH 内存、尚未进入 JSONL 的事件无法由插件恢复。`run_epoch=arming` 必须先于实时 admission 可靠提交。
 - **异常恢复调度**：异常退出后的恢复不阻塞 DSH 启动；完整性核对按会话顺序进行，实时投影不受影响地继续，单会话失败隔离后继续其余会话。恢复期间状态为 `recovering`，溢出或落后时为 `degraded`。运行期间按固定间隔（默认 10 分钟）重复同一完整性核对，无需重启即可补齐实时路径丢失或新增的会话日志。
-- **恢复锚点**：revision 变化时从 checkpoint 自身的 `seq` 读取一条锚点；锚点存在才读取其后的尾部，锚点缺失代表 JSONL 截短或重写，使用 Worker 临时表从 0 重投影并在单事务替换该生命周期。来源中完全消失的会话不自动删除永久 facts。
+- **恢复锚点**：revision 变化时从 checkpoint 的 `seq`+1 起单次读取尾部；日志被截断或重写至 checkpoint 之下时尾部补扫失败并隔离（degraded）。基于锚点核对的从 0 重投影（Worker 临时表单事务替换）为延期设计，首版未实现。来源中完全消失的会话不自动删除永久 facts。
 - **来源 flush 故障**：已从活动会话表移除（dispose）的会话，其缓冲事件在移除前必然已落盘，落盘屏障视为满足，批次直接投影。DSH flush 失败按会话以 100ms、1s、5s 重试三次，其他会话继续；失败会话随后进入 `degraded/resync_required` 并以 30 秒冷却开启新一轮。恢复时从 checkpoint 后的 JSONL 尾部重新对齐，关闭时仍未恢复则本 run 不得标记 clean。
 - **Ready 与告警**：确定性坏事件隔离并追平来源后 phase 可以为 `ready`，snapshot 另返 `warnings.count` 与有限错误摘要；`degraded` 只表示仍有数据落后、队列溢出或可恢复系统故障。
-- **初始化扫描切点**：首次建库在 run arming 后先注册根级实时 listener，再枚举 snapshots；每个会话在自身串行链中按需 flush、`readFrom(0)`，将持久前缀与 listener 暂存的实时增量按 seq 合并，最后事务提交 `bootstrap_complete + source_revision`。初始化不要求全局原子快照或所有会话静止。
+- **初始化扫描切点**：首次建库在 run arming 后先注册根级实时 listener，再枚举 snapshots；每个会话串行单次 `readFrom(0)`（续跑时从 checkpoint 尾部）读整个后缀，内存分块交给 Worker，末块单事务提交 `bootstrap_complete + source_revision`。实时事件不由扫描暂存，而经 collector 并行投影，`(turn, step)` + `source_seq` 幂等去重保证与补扫一致。初始化不要求全局原子快照或所有会话静止。
 - **初始化扫描调度**：历史扫描固定单会话并发，每处理 500 个事件或一个会话主动让出事件循环，并以最多 500 facts 的 bulk batch 交给 Worker；实时队列达到软阈值时暂停历史扫描。公共 `readFrom()` 仍可能因单个不可分割压缩帧短暂占用宿主线程，首版不绕过 DSH API 读取私有文件格式。
-- **初始化来源失败**：单会话临时读取错误按 1s、5s、30s 重试三次；确定性损坏或重试耗尽后隔离并继续其他会话，最终 phase 为 `degraded` 而非 `ready`。下次启动重试所有 checkpoint 未覆盖当前来源 revision 的生命周期（含 `bootstrap_complete=false`、checkpoint 缺失或 revision 过期）；全局 `error` 仅表示数据库或 Worker 整体不可用。
+- **初始化来源失败**：单会话读取失败立即隔离（scan_failed）并继续其他会话，最终 phase 为 `degraded` 而非 `ready`；下次启动或周期性复核对重试所有 checkpoint 未覆盖当前来源 revision 的生命周期（含 `bootstrap_complete=false`、checkpoint 缺失或 revision 过期）。全局 `error` 仅表示数据库或 Worker 整体不可用。
 - **初始化与 clean 独立**：正常关闭可取消当前历史读取并保留已提交 checkpoint，取消不算失败；只要实时/flush/Worker 链均已排空，run 可以标记 clean，而 `projection_state` 继续保持 `initializing`，下次从未完成生命周期续跑。
-- **初始化完成门禁**：扫描队列为空后再次枚举 snapshots 收口；仅当所有已发现生命周期均 bootstrap complete、无 failed session、全部初始化批次已 ack 且实时暂存已交接正常队列时，Worker 才在单事务写最终进度、completed_at 与 `ready`。
+- **初始化完成门禁**：final sweep 枚举收口后，仅当所有已发现生命周期均 bootstrap complete、无 failed session 且扫描未被 abort 时，Worker 才在单事务写最终进度、completed_at 与 `ready`；否则 phase 为 `degraded`，下次路径重试。
 - **Snapshot 查询窗口**：单一 GET snapshot 只接受 `weeks`（默认 26，1～52）与 `offsetWeeks`（默认 0，0～10000），固定按运行机器本地时区；不提供 provider/model 筛选或事实 cursor，非法值返回 `bad_query`，未知参数忽略。
 - **Snapshot 统计范围**：summary 始终表示当前 today/7天/30天/全历史，不受翻页影响；days 与顶层 byModel 表示请求的 weeks/offsetWeeks 窗口，days 继续携带逐日 byModel。sessionCount 是至少有一条永久 Usage fact 的会话生命周期数；ready 可带 warnings 且 complete=true，其他追平中状态 complete=false。
 - **Snapshot HTTP 状态**：ready、initializing、recovering、degraded 均返回 200 和当前一致 snapshot，后三者 complete=false；rebuild_required、全局 error、Worker 不可用或超时返回 503 且不提供不可信统计，bad_query 返回 400。浏览器错误只含结构化 code/message/retryable/phase/retryAfter，不泄露路径、日志正文或堆栈。

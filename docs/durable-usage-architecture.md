@@ -155,7 +155,7 @@ classDiagram
   UsageProjector --> SqliteUsageStore
 ```
 
-跨线程协议只含 `init/project/snapshot/drain/shutdown` 五类命令；所有 request/ack 带 protocol version、request id 和 host generation。未知版本、未知命令或失配 generation 必须拒绝，不做兼容猜测。
+跨线程协议含数据命令 `init/project/snapshot/drain/shutdown` 与 run epoch、投影状态管理类命令（`WorkerCommandType`）；所有 request/ack 带 protocol version、request id 和 host generation。未知版本、未知命令或失配 generation 必须拒绝，不做兼容猜测。
 
 SQLite 基线：
 
@@ -394,24 +394,21 @@ sequenceDiagram
   H->>H: register root listener
   H->>P: listSnapshots
   loop one lifecycle at a time
-    H->>P: flush active session if needed
-    H->>P: readFrom(0/checkpoint anchor)
+    H->>P: readFrom(0 or checkpoint tail)
     H->>W: <=500 facts per bulk
     W->>S: facts + checkpoint transaction
-    H->>W: merge buffered live by seq
-    W->>S: bootstrap_complete + revision
   end
   H->>P: final listSnapshots sweep
   W->>S: progress + ready in one transaction
 ```
 
-- 历史扫描并发 1；每 500 events/一个会话 yield；live 达 soft pressure 时暂停。
+- 历史扫描并发 1；每 500 events 或一个会话让出事件循环。
 - `readFrom` 可能因单个 Zstd frame 短暂占用 host；首版不绕过 DSH API。
-- 进度只报 discovered/completed/scanning/retrying/failed/pendingLiveBatches，不承诺单调百分比或 ETA。
-- 单会话 read 按 1s、5s、30s 重试；损坏后隔离，整体 degraded。
+- 进度只报 discovered/completed/scanning/retrying/failed 与起止时间戳，不承诺单调百分比或 ETA。
+- 单会话 read 失败立即隔离（scan_failed），下次启动或周期性复核对重试；存在 failed session 时整体 degraded 而非 ready。
 - 正常关闭可 abort 初始化并保持 run clean；projection 仍 initializing，下次续跑。
 
-ready 门禁：队列空、final sweep 完成、全部 bootstrap complete、failed=0、初始化 batch 全 ack、live buffer 已交接，且当前 run active。最终进度、completed_at、ready 在一个事务写入。
+ready 门禁：final sweep 完成、全部已发现生命周期 bootstrap complete、failed=0 且扫描未被 abort。最终进度、completed_at、ready 在一个事务写入，否则 phase 为 degraded。
 
 ## 10. 异常恢复
 
@@ -424,21 +421,22 @@ sequenceDiagram
   participant W as Worker
   participant S as SQLite
   H->>P: listSnapshots
-  H->>S: previous baselines/checkpoints
-  H->>H: select new/changed lifecycles
-  H->>P: readFrom(checkpoint.last_seq) anchor
-  alt anchor exists
-    H->>P: continuous suffix after anchor
-    H->>W: idempotent tail batches
-  else anchor missing
-    H->>P: readFrom(0)
-    H->>W: build lifecycle temp table
-    W->>S: transactionally replace lifecycle
+  H->>S: lifecycles/checkpoints
+  loop one lifecycle at a time
+    H->>H: verify source revision vs checkpoint
+    alt revision matches and bootstrap complete
+      H->>S: confirmed caught up (no log read)
+    else missing/incomplete/advanced
+      H->>P: readFrom(lastSeq+1) once
+      H->>W: chunked tail batches
+      W->>S: idempotent facts + checkpoint
+    end
   end
-  H->>W: merge live buffer by seq
+  H->>P: final listSnapshots sweep
+  H->>S: failed isolated, ready or degraded
 ```
 
-完全消失的 session 保留永久 facts；同一生命周期仍存在但锚点证明重写时才局部替换。
+完全消失的 session 保留永久 facts。会话日志被截断或重写至 checkpoint 之下时 revision 失配，尾部补扫失败并隔离为 `scan_failed`（degraded）；基于锚点的从 0 重投影为延期设计（见 §19）。
 
 | 中断点 | 结果 |
 |---|---|
@@ -574,7 +572,7 @@ Commit 1～8 不接入 root；Commit 9 是行为切换与主要回滚点。每�
 
 ## 16. 验证与验收
 
-故障覆盖：flush 前后、commit/ack、arming/active crash、初始化 abort/live race、overflow、锚点缺失、shutdown timeout、shadow promotion 每一步、owner 竞争、too-new/foreign/corrupt/permission/ENOSPC。每项断言不重复、checkpoint 不越界、错误不伪装 ready、旧库不误删。
+故障覆盖：flush 前后、commit/ack、arming/active crash、初始化 abort/live race、overflow、shutdown timeout、shadow promotion 每一步、owner 竞争、too-new/foreign/corrupt/permission/ENOSPC。每项断言不重复、checkpoint 不越界、错误不伪装 ready、旧库不误删。
 
 真实等价：只读真实 sessions、写临时 SQLite；以当前旧 fold/day-bucket 和 `input+output+cacheRead` 为 oracle，逐 fact/summary/day/model/requests/sessionCount 比较；重放两次结果不变。不输出正文、不改正式数据。
 
@@ -616,6 +614,7 @@ node .scratch/durable-usage-architecture/prototype/tui.mjs --scenario all
 ## 19. 已知限制与延期条件
 
 - JSONL backend 的逻辑 tail read 物理上可能解析整文件；完整性核对每 pass 对每个会话日志最多读取一次（不按 chunk 重读），且只发生初始化、异常恢复、周期性复核对或 resync，不在面板路径。
+- §10 设计的锚点缺失（日志截断/重写至 checkpoint 之下）路径——Worker 临时表从 0 重投影并在单事务替换该生命周期——首版未实现；当前实现将此类会话隔离为 `scan_failed`（degraded），下次启动或周期性复核对重试。
 - `node:sqlite` 在本机 Node 24.14 仍发 ExperimentalWarning；不全局屏蔽，启动做能力检查。
 - 首版全历史 summary/byModel 仍是 SQL 聚合。只有 100k facts 门禁失败或生产 snapshot 接近 5 秒时才单独设计日 rollup；不得回退扫描 JSONL。
 - 单 owner 意味着同一 DSH Home 的第二 web 进程不能同时提供写服务。
