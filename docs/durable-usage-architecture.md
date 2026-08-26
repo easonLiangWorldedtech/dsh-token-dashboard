@@ -308,7 +308,7 @@ sequenceDiagram
   W-->>H: committed(batchId,generation)
 ```
 
-Host 按 `(batch_id,host_generation)` 保留 unacked。Worker crash 最多按 100ms、1s、5s 重启三次。重投时整体旧于 checkpoint 则 no-op，部分重叠裁前缀，连续后缀处理，存在 gap 则 resync。确定性错误或三次失败后熔断，run 保持非 clean。
+Host 按 `(batch_id,host_generation)` 保留 unacked；`pendingBatches` 只计已送出未 ack 的 in-flight 批次。确定性拒绝（projection_gap）的批次立即移出 unacked——它按原样永不会被提交，恢复由完整性复核负责（flush 屏障保证批次事件已入 JSONL）。可重试故障保留条目，Worker 崩溃最多按 100ms、1s、5s 重启三次后重投，整体旧于 checkpoint 的批次因幂等成为 no-op。连续三次意外退出后熔断，run 保持非 clean。
 
 投影核心伪代码：
 
@@ -321,16 +321,23 @@ onCommittedEvent(event) {
 async closeHostBatch(batch) {
   await dsh.sessions.flush(batch.session)
   unacked.put(batch.id, batch)
-  ack = await worker.project(batch)
-  unacked.removeOnlyIfGenerationMatches(ack)
+  try {
+    ack = await worker.project(batch)
+  } catch (error) {
+    if (error.retryable === false) unacked.remove(batch.id) // 确定性 gap：完整性复核负责恢复
+    markResync(batch.lifecycle)
+    return
+  }
+  unacked.remove(batch.id)
 }
 
 worker.project(batch) {
   transaction(() => {
     checkpoint = loadCheckpoint(batch.lifecycle)
-    suffix = requireContinuousSuffixOrNoop(batch, checkpoint)
-    upsertFactsAndErrors(suffix)
-    advanceCheckpointTo(suffix.toSeq, suffix.routeCursor)
+    if (batch.fromSeq > checkpoint + 1) throw projectionGap(batch) // 确定性拒绝
+    if (batch.toSeq <= checkpoint) return noAck // 整体旧于 checkpoint
+    upsertFactsAndErrors(batch)
+    advanceCheckpointTo(batch.toSeq, batch.routeCursor)
     incrementCommitGeneration()
   })
   return committedAck()

@@ -25,7 +25,7 @@
 - **投影批次 (projection batch)**：host 不保存或跨线程发送完整 SessionEvent，只发送会话生命周期、连续的 `from_seq/to_seq` 与 provider/model 路由变化、Usage chunk/message 等最小增量；无关事件只推进已检查序号范围，消息正文、工具参数和输出不进入队列。
 - **两级批处理**：host 按会话在最终 Usage message/turn 结束、250ms 空闲、1s 最大年龄或 64 个相关增量时关闭批次并异步 flush 来源；Worker 跨会话最多合并 250ms 或 128 个事实，snapshot/drain 强制立即提交。正常可见延迟目标约 250～500ms 加一次 SQLite 提交耗时。
 - **投影背压**：`session/event` 永不因面板投影而阻塞。未确认相关增量达到 4096 时 Worker 改为立即提交；达到 16384 时停止无限保留并进入 `resync_required`，队列恢复后对受影响生命周期执行 `flush → readFrom(checkpoint + 1)`。受影响集合也溢出时退化为全会话 revision 比对，面板在补齐前明确显示数据落后。
-- **Worker 故障熔断**：可重试故障最多按 100ms、1s、5s 自动重启三次，并根据 SQLite checkpoint 裁掉重投批次的已提交前缀；确定性错误或三次连续失败后本次运行熔断，保留异常 run 状态供下次从 JSONL 恢复。
+- **Worker 故障熔断**：unacked 集合只计已送出未 ack 的 in-flight 批次。可重试故障（Worker 崩溃、RPC 超时）最多按 100ms、1s、5s 自动重启三次，重启后重投 unacked 批次，整体旧于 checkpoint 的批次因幂等成为 no-op；`projection_gap` 等确定性拒绝不算故障，批次立即移出 unacked，恢复由完整性复核负责。连续三次意外退出后本次运行熔断，保留异常 run 状态供下次从 JSONL 恢复。
 - **退出排空**：唯一 async disposer 以 4 秒为正常排空预算，依次停止 admission、关闭 host 批次、等待 DSH flush 链、提交并确认 Worker 批次、最后标记 run clean，再关闭数据库和 Worker；超时或失败时不得标记 clean，交由下次异常恢复。
 - **恢复边界**：已进入权威 JSONL、但尚未提交或尚未 ack 的 SQLite 投影均可通过 revision、checkpoint 与幂等重投恢复；只有硬中断时仍仅存在于 DSH 内存、尚未进入 JSONL 的事件无法由插件恢复。`run_epoch=arming` 必须先于实时 admission 可靠提交。
 - **异常恢复调度**：异常退出后的恢复不阻塞 DSH 启动；完整性核对按会话顺序进行，实时投影不受影响地继续，单会话失败隔离后继续其余会话。恢复期间状态为 `recovering`，溢出或落后时为 `degraded`。运行期间按固定间隔（默认 10 分钟）重复同一完整性核对，无需重启即可补齐实时路径丢失或新增的会话日志。
