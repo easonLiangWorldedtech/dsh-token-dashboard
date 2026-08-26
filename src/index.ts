@@ -15,7 +15,7 @@ import { join } from 'node:path'
 import { UsageCollector, type FlushService, type SessionLike } from './durable/collector'
 import { InitRecoveryCoordinator, WorkerCoordinatorStore } from './durable/init-recovery'
 import { canonicalDbPath, tokenDashboardDir } from './durable/maintenance'
-import { registerSnapshotRoute } from './durable/snapshot-route'
+import { registerSnapshotRoute, type SnapshotProvider } from './durable/snapshot-route'
 import { UsageWorkerClient } from './durable/worker-client'
 
 /** Required services: HTTP routes, persistence seam and live session store. */
@@ -71,7 +71,11 @@ export function apply(ctx: Context): void {
       collector.onEvent(session as never, event as never)
     }
     const disposeListener = ctx.on('session/event', onEvent)
-    const disposeRoutes = registerSnapshotRoute(ctx, worker)
+    const snapshotProvider: SnapshotProvider = {
+      snapshot: (query) => worker.snapshot(query),
+      revision: () => worker.drain(),
+    }
+    const disposeRoutes = registerSnapshotRoute(ctx, snapshotProvider)
 
     void (async () => {
       try {

@@ -491,7 +491,7 @@ ready/initializing/recovering/degraded 返回 200，后三者 complete=false。r
 
 Worker：先提交已接收 writes，再开一个读事务查询 state/summary/days/models/warnings，commit 后补零并组装。结果可落后仍在 host flush 的一个正常批次，但内部不撕裂。
 
-Host 合并同参数 RPC，LRU 最多 8 个结果；key 包含 query、commit generation、state generation、本地日期。提交/状态变化/跨日失效。HTTP 超时 5 秒，不强杀同步 SQL。
+Host 合并同参数 RPC，LRU 最多 8 个结果；key 包含 query、commit generation、state generation、本地日期。key 取 store *当前* generation（每请求一次 drain hop，无 SQL），提交/状态变化/跨日即产生新 key；若取「上次已服务」的 generation 则失效永不发生（2026-08-26 线上 bug：整天只返回当天第一个快照）。HTTP 超时 5 秒，不强杀同步 SQL。
 
 ## 12. 路径、迁移、重建与 CLI
 
