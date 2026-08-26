@@ -1,6 +1,7 @@
 import type { SessionEvent } from '@deepseek-ai/dsh-session';
 import type { ProjectionBatch, LifecycleIdentity } from './contracts';
 import type { SqliteUsageStore } from './sqlite-store';
+import type { UsageWorkerClient } from './worker-client';
 /** Minimal persistence seam shape sufficient for init/recovery. */
 export interface PersistenceLike {
     listSnapshots(signal?: AbortSignal): Promise<Array<{
@@ -65,7 +66,7 @@ export interface CoordinatorStore {
 /** Async adapter for the Worker client: all SQLite operations stay in the Worker. */
 export declare class WorkerCoordinatorStore implements CoordinatorStore {
     private readonly client;
-    constructor(client: import('./worker-client').UsageWorkerClient);
+    constructor(client: UsageWorkerClient);
     getLastRunEpoch(): Promise<import("./worker-client").RunEpochInfo | null>;
     beginRunEpoch(startedAtMs?: number): Promise<number>;
     activateRunEpoch(epochId: number, baselines: ReadonlyArray<{

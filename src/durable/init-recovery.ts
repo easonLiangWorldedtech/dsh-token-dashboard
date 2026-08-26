@@ -18,6 +18,7 @@ import type { SessionEvent } from '@deepseek-ai/dsh-session'
 import type { ProjectionBatch, LifecycleIdentity } from './contracts'
 import { normalizeEventDeltas } from './projector'
 import type { SqliteUsageStore } from './sqlite-store'
+import type { UsageWorkerClient } from './worker-client'
 
 /** Minimal persistence seam shape sufficient for init/recovery. */
 export interface PersistenceLike {
@@ -59,7 +60,7 @@ export interface CoordinatorStore {
 
 /** Async adapter for the Worker client: all SQLite operations stay in the Worker. */
 export class WorkerCoordinatorStore implements CoordinatorStore {
-  constructor(private readonly client: import('./worker-client').UsageWorkerClient) {}
+  constructor(private readonly client: UsageWorkerClient) {}
 
   async getLastRunEpoch() { return this.client.getLastRunEpoch() }
   async beginRunEpoch(startedAtMs?: number) { return this.client.beginRunEpoch(startedAtMs) }
