@@ -41,7 +41,7 @@ The npm package is not currently published; use the GitHub installation above.
 - Projection database: `$DSH_HOME/data/token-dashboard/usage-v1.sqlite` (default `~/.dsh`).
 - Total tokens = `inputTokens + outputTokens + cacheReadTokens` (cache reads count into the headline).
 - The panel only calls the snapshot route; it does not trigger `listSnapshots`, `inspect`, `readFrom`, `flush`, or backfill.
-- First startup initializes the database in the background; the panel shows phase/progress until `ready`.
+- Each startup runs a background completeness pass over all session logs (sessions already caught up are verified by revision comparison without reading the log); the panel shows phase/progress until `ready`.
 
 ## Development
 

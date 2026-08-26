@@ -382,7 +382,7 @@ stateDiagram-v2
 
 ## 9. 首次初始化
 
-全历史扫描只在缺库、phase=initializing 续跑或明确 rebuild generation 运行。ready 启动、面板和 snapshot 均不触发。
+全历史扫描只在缺库、phase=initializing 续跑或明确 rebuild generation 运行。每次启动（含 ready 启动）另对全部当前会话日志做完整性核对：checkpoint 已覆盖当前来源 revision 的会话只比较不读日志，缺失 checkpoint、bootstrap 未完成或 revision 过期者从 checkpoint 之后补扫。面板和 snapshot 均不触发。
 
 ```mermaid
 sequenceDiagram
@@ -415,7 +415,7 @@ ready 门禁：队列空、final sweep 完成、全部 bootstrap complete、fail
 
 ## 10. 异常恢复
 
-上一 epoch=active：只恢复相对其 baseline 新增或 revision 变化的生命周期。上一 epoch=arming：baseline 可能不完整，退化为全部当前生命周期。恢复不阻塞启动，最多并行 2 个会话；受影响会话缓存 live，其他会话继续。
+每次启动无论上一 epoch 状态如何，都对全部当前会话日志做完整性核对：来源 revision 与 checkpoint 一致的生命周期不重扫，缺失 checkpoint、bootstrap 未完成或 revision 过期者从 checkpoint 之后补扫。恢复不阻塞启动，单会话顺序处理，让出事件循环；单会话失败隔离后继续其余会话，最终 phase 为 degraded 而非 ready。
 
 ```mermaid
 sequenceDiagram
@@ -534,7 +534,7 @@ dsh-token-dashboard cleanup <exact-basename>
 
 | 故障 | Phase/HTTP | 自动动作 | 保证 |
 |---|---|---|---|
-| 单会话 flush 失败 | degraded/200 partial | 3 次退避、30s 冷却、tail resync | 不推进 checkpoint |
+| 单会话 flush 失败 | degraded/200 partial | 已 dispose 会话屏障视为满足直接投影；live 会话 3 次退避、30s 冷却、tail resync | 不推进 checkpoint |
 | Worker 退出 | degraded/200 partial | 3 次退避、重投 | commit/ack 幂等 |
 | Worker 三次失败 | error/503 | 熔断，等下次启动 | run dirty |
 | 初始化单文件损坏 | degraded/200 partial | 隔离、下次重试 | 不伪装完整 |
@@ -615,7 +615,7 @@ node .scratch/durable-usage-architecture/prototype/tui.mjs --scenario all
 
 ## 19. 已知限制与延期条件
 
-- JSONL backend 的逻辑 tail read 物理上可能解析整文件，但只发生初始化、异常恢复或 resync，不在面板路径。
+- JSONL backend 的逻辑 tail read 物理上可能解析整文件；完整性核对每 pass 对每个会话日志最多读取一次（不按 chunk 重读），且只发生初始化、异常恢复、周期性复核对或 resync，不在面板路径。
 - `node:sqlite` 在本机 Node 24.14 仍发 ExperimentalWarning；不全局屏蔽，启动做能力检查。
 - 首版全历史 summary/byModel 仍是 SQL 聚合。只有 100k facts 门禁失败或生产 snapshot 接近 5 秒时才单独设计日 rollup；不得回退扫描 JSONL。
 - 单 owner 意味着同一 DSH Home 的第二 web 进程不能同时提供写服务。
