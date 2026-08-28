@@ -6,7 +6,7 @@ A DeepSeek Harness (DSH) web GUI plugin: a token-consumption heatmap panel. It s
 
 > Status: **released [v0.2.0](https://github.com/apodemakeles/dsh-token-dashboard/releases/tag/v0.2.0)** — GitHub distribution is live. The package is not currently published to npm.
 
-> **Fork:** this repository is forked from [`apodemakeles/dsh-token-dashboard`](https://github.com/apodemakeles/dsh-token-dashboard). v0.3.0 re-targets the peer and dev dependency ranges from `0.1.0-rc.6` to `^0.1.0-rc.8` so the plugin typechecks, builds, and loads against DeepSeek Harness **rc.8 and later**. No runtime behavior changed.
+> **Fork:** this repository is forked from [`apodemakeles/dsh-token-dashboard`](https://github.com/apodemakeles/dsh-token-dashboard). v0.3.0 re-targets the peer and dev dependency ranges from `0.1.0-rc.6` to `^0.1.0-rc.8` so the plugin typechecks, builds, and loads against DeepSeek Harness **rc.8 and later**. v0.4.0 drops the `@deepseek-ai/dsh-client-runtime` references, a package the harness client refactor removed: the `ClientContext` type now comes from `@deepseek-ai/cordis`, and the `slots` service is provided by the `dsh-client-ui-renderer` client row (the `dsh.client.inject` edge now points there). No runtime behavior changed.
 
 ## Screenshots
 

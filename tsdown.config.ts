@@ -10,8 +10,7 @@ import { defineConfig } from 'tsdown'
 // Client-half platform modules: the specifiers the web shell shares into the
 // frozen module table. They stay external and resolve at factory-run time
 // through the require() the module loader injects. Mirrors the shell's seed
-// table (reference: dsh-web-ui shared/web-platform.ts); the runtime/client
-// subpath rides the same table as a documented exemption.
+// table (reference: dsh-web-ui shared/web-platform.ts).
 const CLIENT_EXTERNALS = [
   'react',
   'react/jsx-runtime',
@@ -22,7 +21,6 @@ const CLIENT_EXTERNALS = [
   '@deepseek-ai/dsh-client-web-react',
   '@deepseek-ai/dsh-client-ui-primitives',
   '@deepseek-ai/dsh-client-schema-form',
-  '@deepseek-ai/dsh-client-runtime/client',
 ] as const
 
 export default defineConfig([
